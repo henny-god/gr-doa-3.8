@@ -26,8 +26,8 @@ from gnuradio import gr;
 import time
 import random
 
-from PyQt4 import Qt, QtCore, QtGui
-import PyQt4.Qwt5 as Qwt
+from PyQt5 import Qt, QtCore, QtGui
+import PyQt5.Qwt as Qwt
 
 class compass(gr.sync_block, Qwt.QwtPlot):
     __pyqtSignals__ = ("updatePlot(int)")

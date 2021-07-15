@@ -41,9 +41,33 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [288, 24.0]
+    coordinate: [296, 24.0]
     rotation: 0
-    state: enabled
+    state: true
+- name: iio_uri
+  id: variable
+  parameters:
+    comment: ''
+    value: '"ip:192.168.1.4"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [384, 24.0]
+    rotation: 0
+    state: true
+- name: num_inputs
+  id: variable
+  parameters:
+    comment: ''
+    value: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [504, 24.0]
+    rotation: 0
+    state: true
 - name: samp_rate
   id: variable
   parameters:
@@ -53,9 +77,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 12]
+    coordinate: [208, 24.0]
     rotation: 0
-    state: enabled
+    state: true
 - name: doa_findmax_and_save_0
   id: doa_findmax_and_save
   parameters:
@@ -63,7 +87,7 @@ blocks:
     alias: ''
     comment: ''
     config_filename: /home/henry/phases.cfg
-    num_inputs: '3'
+    num_inputs: num_inputs-1
     samples_to_findmax: '2048'
   states:
     bus_sink: false
@@ -81,7 +105,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     n_skip_ahead: '8192'
-    num_inputs: '4'
+    num_inputs: num_inputs
   states:
     bus_sink: false
     bus_source: false
@@ -101,7 +125,7 @@ blocks:
     filter: ''
     frequency1: center_freq
     frequency2: center_freq
-    gain1: '''slow_attack'''
+    gain1: '''manual'''
     gain2: '''slow_attack'''
     gain3: '''slow_attack'''
     gain4: '''slow_attack'''
@@ -119,7 +143,7 @@ blocks:
     rx3_en: 'True'
     rx4_en: 'True'
     samplerate: samp_rate
-    uri: ip:192.168.1.4
+    uri: iio_uri
   states:
     bus_sink: false
     bus_source: false
