@@ -66,7 +66,7 @@ class save_antenna_calib(gr.sync_block):
             P = list(chain.from_iterable(input_items[1]))
             PhaseEst = numpy.mean(P[i::self.num_inputs])
             # Write to file
-            if file.write(str(GainEst)+' '+str(PhaseEst)+"\n") != None:
+            if file.write(str(GainEst)+' '+str(PhaseEst)+"\n") == None:
                 sys.stderr.write("Writing file failed\n")
                 print(sys.stderr)
                 sys.exit(1)

@@ -5,12 +5,13 @@ options:
     cmake_opt: ''
     comment: ''
     copyright: ''
-    description: Calibrate a linear array using known angle of arrival
+    description: Implementing block configuration for MUSIC on a linear array with
+      spacing of 7.35cm
     gen_cmake: 'On'
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: calibrate_linear_array
+    id: music_linear_array
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -21,13 +22,13 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: Calibrate Linear Array
+    title: MUSIC Linear Array
     window_size: ''
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 8]
+    coordinate: [8, 16.0]
     rotation: 0
     state: enabled
 
@@ -41,7 +42,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 88.0]
+    coordinate: [360, 80.0]
     rotation: 0
     state: true
 - name: center_freq
@@ -53,7 +54,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [256, 24.0]
+    coordinate: [264, 16.0]
     rotation: 0
     state: true
 - name: iio_uri
@@ -65,7 +66,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 24.0]
+    coordinate: [360, 16.0]
     rotation: 0
     state: true
 - name: linear_spacing
@@ -77,7 +78,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [776, 24.0]
+    coordinate: [792, 16.0]
     rotation: 0
     state: true
 - name: normalized_spacing
@@ -89,7 +90,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [776, 88.0]
+    coordinate: [792, 80.0]
     rotation: 0
     state: true
 - name: num_inputs
@@ -101,7 +102,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 24.0]
+    coordinate: [520, 16.0]
     rotation: 0
     state: true
 - name: phase_profile
@@ -113,7 +114,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 24.0]
+    coordinate: [616, 16.0]
     rotation: 0
     state: true
 - name: samp_rate
@@ -125,24 +126,44 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [176, 24.0]
+    coordinate: [184, 16.0]
     rotation: 0
     state: true
-- name: blocks_complex_to_magphase_0
-  id: blocks_complex_to_magphase
+- name: doa_MUSIC_lin_array_0
+  id: doa_MUSIC_lin_array
   parameters:
     affinity: ''
     alias: ''
     comment: ''
+    inputs: '4'
     maxoutbuf: '0'
     minoutbuf: '0'
-    vlen: num_inputs
+    norm_spacing: normalized_spacing
+    num_targets: '1'
+    pspectrum_len: '50'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [816, 432.0]
+    coordinate: [960, 456.0]
     rotation: 180
+    state: true
+- name: doa_antenna_correction_0
+  id: doa_antenna_correction
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    config_filename: array_calibration_profile
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: num_inputs
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [760, 264.0]
+    rotation: 0
     state: true
 - name: doa_autocorrelate_0
   id: doa_autocorrelate
@@ -160,25 +181,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [560, 272.0]
-    rotation: 0
-    state: true
-- name: doa_calibrate_lin_array_0
-  id: doa_calibrate_lin_array
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    norm_spacing: normalized_spacing
-    num_ant_ele: '4'
-    pilot_angle: '45.0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [792, 304.0]
+    coordinate: [960, 264.0]
     rotation: 0
     state: true
 - name: doa_phase_correct_0
@@ -195,26 +198,10 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [336, 272.0]
+    coordinate: [576, 264.0]
     rotation: 0
     state: true
-- name: doa_save_antenna_calib_0
-  id: doa_save_antenna_calib
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    config_filename: array_calibration_profile
-    num_inputs: '4'
-    samples_to_average: '2048'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [552, 432.0]
-    rotation: 180
-    state: enabled
-- name: iio_fmcomms5_source_0
+- name: iio_fmcomms5_source_0_0
   id: iio_fmcomms5_source
   parameters:
     affinity: ''
@@ -249,23 +236,24 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [120, 200.0]
+    coordinate: [360, 192.0]
     rotation: 0
     state: enabled
 
 connections:
-- [blocks_complex_to_magphase_0, '0', doa_save_antenna_calib_0, '0']
-- [blocks_complex_to_magphase_0, '1', doa_save_antenna_calib_0, '1']
-- [doa_autocorrelate_0, '0', doa_calibrate_lin_array_0, '0']
-- [doa_calibrate_lin_array_0, '0', blocks_complex_to_magphase_0, '0']
-- [doa_phase_correct_0, '0', doa_autocorrelate_0, '0']
-- [doa_phase_correct_0, '1', doa_autocorrelate_0, '1']
-- [doa_phase_correct_0, '2', doa_autocorrelate_0, '2']
-- [doa_phase_correct_0, '3', doa_autocorrelate_0, '3']
-- [iio_fmcomms5_source_0, '0', doa_phase_correct_0, '0']
-- [iio_fmcomms5_source_0, '1', doa_phase_correct_0, '1']
-- [iio_fmcomms5_source_0, '2', doa_phase_correct_0, '2']
-- [iio_fmcomms5_source_0, '3', doa_phase_correct_0, '3']
+- [doa_antenna_correction_0, '0', doa_autocorrelate_0, '0']
+- [doa_antenna_correction_0, '1', doa_autocorrelate_0, '1']
+- [doa_antenna_correction_0, '2', doa_autocorrelate_0, '2']
+- [doa_antenna_correction_0, '3', doa_autocorrelate_0, '3']
+- [doa_autocorrelate_0, '0', doa_MUSIC_lin_array_0, '0']
+- [doa_phase_correct_0, '0', doa_antenna_correction_0, '0']
+- [doa_phase_correct_0, '1', doa_antenna_correction_0, '1']
+- [doa_phase_correct_0, '2', doa_antenna_correction_0, '2']
+- [doa_phase_correct_0, '3', doa_antenna_correction_0, '3']
+- [iio_fmcomms5_source_0_0, '0', doa_phase_correct_0, '0']
+- [iio_fmcomms5_source_0_0, '1', doa_phase_correct_0, '1']
+- [iio_fmcomms5_source_0_0, '2', doa_phase_correct_0, '2']
+- [iio_fmcomms5_source_0_0, '3', doa_phase_correct_0, '3']
 
 metadata:
   file_format: 1
