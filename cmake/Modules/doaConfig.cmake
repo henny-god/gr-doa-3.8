@@ -22,9 +22,10 @@ FIND_LIBRARY(
           /usr/local/lib64
           /usr/lib
           /usr/lib64
-)
+          )
+
+include("${CMAKE_CURRENT_LIST_DIR}/doaTarget.cmake")
 
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(DOA DEFAULT_MSG DOA_LIBRARIES DOA_INCLUDE_DIRS)
 MARK_AS_ADVANCED(DOA_LIBRARIES DOA_INCLUDE_DIRS)
-

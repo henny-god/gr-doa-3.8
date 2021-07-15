@@ -1,0 +1,37 @@
+id: doa_phase_correct
+label: Phase Correct
+category: DoA
+
+templates:
+  imports: import doa
+  make: doa.phase_correct(${num_ports}, ${config_filename})
+
+parameters:
+- id: num_ports
+  label: Num Ports
+  dtype: int
+  default: '4'
+- id: config_filename
+  label: Config File
+  dtype: file_open
+  default: "/tmp/phases.cfg"
+
+inputs:
+- label: in
+  domain: stream
+  dtype: complex
+  multiplicity: ${num_ports}
+
+outputs:
+- label: out
+  domain: stream
+  dtype: complex
+  multiplicity: ${num_ports}
+
+documentation: |-
+  "Correct phase offsets of N complex input channels, provided in a specified configuration file.
+  Args:
+    num_ports: Number of inputs to the block.
+    config_filename: Config file which stores the result."
+
+file_format: 1

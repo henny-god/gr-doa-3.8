@@ -1,0 +1,141 @@
+options:
+  parameters:
+    author: Henry Pick
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Estimate the phase offset of the FMComms5 4-channel receiving
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: est_phase_offset
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Estimate Phase Offset
+    window_size: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: center_freq
+  id: variable
+  parameters:
+    comment: ''
+    value: int(915e6)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 24.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: int(2.4e6)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [184, 12]
+    rotation: 0
+    state: enabled
+- name: doa_findmax_and_save_0
+  id: doa_findmax_and_save
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    config_filename: /home/henry/phases.cfg
+    num_inputs: '3'
+    samples_to_findmax: '2048'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [632, 264.0]
+    rotation: 0
+    state: true
+- name: doa_twinrx_phase_offset_est_0
+  id: doa_twinrx_phase_offset_est
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    n_skip_ahead: '8192'
+    num_inputs: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [384, 248.0]
+    rotation: 0
+    state: true
+- name: iio_fmcomms5_source_0
+  id: iio_fmcomms5_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: int(samp_rate/2)
+    bbdc: 'True'
+    buffer_size: '32768'
+    comment: ''
+    filter: ''
+    frequency1: center_freq
+    frequency2: center_freq
+    gain1: '''slow_attack'''
+    gain2: '''slow_attack'''
+    gain3: '''slow_attack'''
+    gain4: '''slow_attack'''
+    manual_gain1: '64'
+    manual_gain2: '64'
+    manual_gain3: '64'
+    manual_gain4: '64'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rf_port_select: '''A_BALANCED'''
+    rfdc: 'True'
+    rx1_en: 'True'
+    rx2_en: 'True'
+    rx3_en: 'True'
+    rx4_en: 'True'
+    samplerate: samp_rate
+    uri: ip:192.168.1.4
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [56, 176.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [doa_twinrx_phase_offset_est_0, '0', doa_findmax_and_save_0, '0']
+- [doa_twinrx_phase_offset_est_0, '1', doa_findmax_and_save_0, '1']
+- [doa_twinrx_phase_offset_est_0, '2', doa_findmax_and_save_0, '2']
+- [iio_fmcomms5_source_0, '0', doa_twinrx_phase_offset_est_0, '0']
+- [iio_fmcomms5_source_0, '1', doa_twinrx_phase_offset_est_0, '1']
+- [iio_fmcomms5_source_0, '2', doa_twinrx_phase_offset_est_0, '2']
+- [iio_fmcomms5_source_0, '3', doa_twinrx_phase_offset_est_0, '3']
+
+metadata:
+  file_format: 1
