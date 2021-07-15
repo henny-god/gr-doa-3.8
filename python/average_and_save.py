@@ -70,7 +70,7 @@ class average_and_save(gr.sync_block):
             average = numpy.mean(input_items[i][:self.samples_to_average])
             # print average
             # Write to config
-            if file.write(str(average)+"\n") != None:
+            if file.write(str(average)+"\n") == None:
                 sys.stderr.write("Writing file failed\n")
                 print(sys.stderr)
                 sys.exit(1)

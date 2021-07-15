@@ -49,7 +49,7 @@ def gen_sig_io(num_elements,sig_type):
         io.append(sig_type*1)
     return io
 
-class phase_correct_hier(gr.hier_block2):
+class phase_correct(gr.hier_block2):
 
     def __init__(self, num_ports=2, config_filename=''):
         gr.hier_block2.__init__(

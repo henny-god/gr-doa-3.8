@@ -1,0 +1,259 @@
+options:
+  parameters:
+    author: Henry Pick
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Calibrate a linear array using known angle of arrival
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: calibrate_linear_array
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Calibrate Linear Array
+    window_size: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: array_calibration_profile
+  id: variable
+  parameters:
+    comment: ''
+    value: '"/home/henry/antenna.cfg"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 88.0]
+    rotation: 0
+    state: true
+- name: center_freq
+  id: variable
+  parameters:
+    comment: ''
+    value: int(915e6)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [256, 24.0]
+    rotation: 0
+    state: true
+- name: iio_uri
+  id: variable
+  parameters:
+    comment: ''
+    value: '"ip:192.168.1.4"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 24.0]
+    rotation: 0
+    state: true
+- name: linear_spacing
+  id: variable
+  parameters:
+    comment: ''
+    value: '.0735'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [776, 24.0]
+    rotation: 0
+    state: true
+- name: num_inputs
+  id: variable
+  parameters:
+    comment: ''
+    value: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [504, 24.0]
+    rotation: 0
+    state: true
+- name: phase_profile
+  id: variable
+  parameters:
+    comment: ''
+    value: '"/home/henry/phases.cfg"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 24.0]
+    rotation: 0
+    state: true
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: int(2.4e6)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 24.0]
+    rotation: 0
+    state: true
+- name: blocks_complex_to_magphase_0
+  id: blocks_complex_to_magphase
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: num_inputs
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 432.0]
+    rotation: 180
+    state: true
+- name: doa_autocorrelate_0
+  id: doa_autocorrelate
+  parameters:
+    affinity: ''
+    alias: ''
+    avg_method: '0'
+    comment: ''
+    inputs: num_inputs
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    overlap_size: '512'
+    snapshot_size: '2048'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [560, 272.0]
+    rotation: 0
+    state: true
+- name: doa_calibrate_lin_array_0
+  id: doa_calibrate_lin_array
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    norm_spacing: linear_spacing/(3e8/center_freq)
+    num_ant_ele: '4'
+    pilot_angle: '45.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [792, 304.0]
+    rotation: 0
+    state: true
+- name: doa_phase_correct_0
+  id: doa_phase_correct
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    config_filename: phase_profile
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [336, 272.0]
+    rotation: 0
+    state: true
+- name: doa_save_antenna_calib_0
+  id: doa_save_antenna_calib
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    config_filename: array_calibration_profile
+    num_inputs: '4'
+    samples_to_average: '2048'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 432.0]
+    rotation: 180
+    state: true
+- name: iio_fmcomms5_source_0
+  id: iio_fmcomms5_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: int(samp_rate/2)
+    bbdc: 'True'
+    buffer_size: '32768'
+    comment: ''
+    filter: ''
+    frequency1: center_freq
+    frequency2: center_freq
+    gain1: '''slow_attack'''
+    gain2: '''slow_attack'''
+    gain3: '''slow_attack'''
+    gain4: '''slow_attack'''
+    manual_gain1: '64'
+    manual_gain2: '64'
+    manual_gain3: '64'
+    manual_gain4: '64'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rf_port_select: '''A_BALANCED'''
+    rfdc: 'True'
+    rx1_en: 'True'
+    rx2_en: 'True'
+    rx3_en: 'True'
+    rx4_en: 'True'
+    samplerate: samp_rate
+    uri: iio_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [120, 200.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_complex_to_magphase_0, '0', doa_save_antenna_calib_0, '0']
+- [blocks_complex_to_magphase_0, '1', doa_save_antenna_calib_0, '1']
+- [doa_autocorrelate_0, '0', doa_calibrate_lin_array_0, '0']
+- [doa_calibrate_lin_array_0, '0', blocks_complex_to_magphase_0, '0']
+- [doa_phase_correct_0, '0', doa_autocorrelate_0, '0']
+- [doa_phase_correct_0, '1', doa_autocorrelate_0, '1']
+- [doa_phase_correct_0, '2', doa_autocorrelate_0, '2']
+- [doa_phase_correct_0, '3', doa_autocorrelate_0, '3']
+- [iio_fmcomms5_source_0, '0', doa_phase_correct_0, '0']
+- [iio_fmcomms5_source_0, '1', doa_phase_correct_0, '1']
+- [iio_fmcomms5_source_0, '2', doa_phase_correct_0, '2']
+- [iio_fmcomms5_source_0, '3', doa_phase_correct_0, '3']
+
+metadata:
+  file_format: 1

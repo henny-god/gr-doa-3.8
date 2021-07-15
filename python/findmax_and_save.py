@@ -24,10 +24,9 @@
 import numpy
 from gnuradio import gr
 import sys
-import doa_swig as doa
 
 def gen_sig_io(num_elements,sig_type):
-    # Dynamically create types for signature
+    # Dynamically create types for signat
     io = []
     for i in range(num_elements):
         io.append(sig_type)
@@ -68,7 +67,7 @@ class findmax_and_save(gr.sync_block):
             max = numpy.amax(input_items[i][:self.samples_to_findmax])
             # print max
             # Write to config
-            if file.write(str(max)+"\n") != None:
+            if file.write(str(max)+"\n") == None:
                 sys.stderr.write("Writing file failed\n")
                 print(sys.stderr)
                 sys.exit(1)

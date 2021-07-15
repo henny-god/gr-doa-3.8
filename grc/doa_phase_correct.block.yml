@@ -14,7 +14,7 @@ parameters:
 - id: config_filename
   label: Config File
   dtype: file_open
-  default: "/tmp/phases.cfg"
+  default: "/tmp/antenna.cfg"
 
 inputs:
 - label: in

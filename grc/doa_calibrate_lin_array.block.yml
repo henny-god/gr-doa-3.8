@@ -13,7 +13,6 @@ parameters:
     label: Num Ant Elements
     dtype: int
     default: '4'
-    hide: ${ 'part' if vlen == 1 else 'none' }
 -   id: pilot_angle
     label: Pilot Angle (Deg.)
     dtype: float

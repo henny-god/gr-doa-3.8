@@ -68,6 +68,18 @@ blocks:
     coordinate: [504, 24.0]
     rotation: 0
     state: true
+- name: phase_profile
+  id: variable
+  parameters:
+    comment: ''
+    value: '"/home/henry/phases.cfg"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 24.0]
+    rotation: 0
+    state: true
 - name: samp_rate
   id: variable
   parameters:
@@ -80,24 +92,24 @@ blocks:
     coordinate: [208, 24.0]
     rotation: 0
     state: true
-- name: doa_findmax_and_save_0
-  id: doa_findmax_and_save
+- name: doa_average_and_save_0
+  id: doa_average_and_save
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    config_filename: /home/henry/phases.cfg
-    num_inputs: num_inputs-1
-    samples_to_findmax: '2048'
+    config_filename: phase_profile
+    num_inputs: num_inputs - 1
+    samples_to_average: '2048'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [632, 264.0]
+    coordinate: [648, 264.0]
     rotation: 0
-    state: true
-- name: doa_twinrx_phase_offset_est_0
-  id: doa_twinrx_phase_offset_est
+    state: enabled
+- name: doa_phase_offset_est_0
+  id: doa_phase_offset_est
   parameters:
     affinity: ''
     alias: ''
@@ -105,14 +117,14 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     n_skip_ahead: '8192'
-    num_inputs: num_inputs
+    num_inputs: '4'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [384, 248.0]
+    coordinate: [376, 248.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: iio_fmcomms5_source_0
   id: iio_fmcomms5_source
   parameters:
@@ -125,7 +137,7 @@ blocks:
     filter: ''
     frequency1: center_freq
     frequency2: center_freq
-    gain1: '''manual'''
+    gain1: '''slow_attack'''
     gain2: '''slow_attack'''
     gain3: '''slow_attack'''
     gain4: '''slow_attack'''
@@ -153,13 +165,13 @@ blocks:
     state: enabled
 
 connections:
-- [doa_twinrx_phase_offset_est_0, '0', doa_findmax_and_save_0, '0']
-- [doa_twinrx_phase_offset_est_0, '1', doa_findmax_and_save_0, '1']
-- [doa_twinrx_phase_offset_est_0, '2', doa_findmax_and_save_0, '2']
-- [iio_fmcomms5_source_0, '0', doa_twinrx_phase_offset_est_0, '0']
-- [iio_fmcomms5_source_0, '1', doa_twinrx_phase_offset_est_0, '1']
-- [iio_fmcomms5_source_0, '2', doa_twinrx_phase_offset_est_0, '2']
-- [iio_fmcomms5_source_0, '3', doa_twinrx_phase_offset_est_0, '3']
+- [doa_phase_offset_est_0, '0', doa_average_and_save_0, '0']
+- [doa_phase_offset_est_0, '1', doa_average_and_save_0, '1']
+- [doa_phase_offset_est_0, '2', doa_average_and_save_0, '2']
+- [iio_fmcomms5_source_0, '0', doa_phase_offset_est_0, '0']
+- [iio_fmcomms5_source_0, '1', doa_phase_offset_est_0, '1']
+- [iio_fmcomms5_source_0, '2', doa_phase_offset_est_0, '2']
+- [iio_fmcomms5_source_0, '3', doa_phase_offset_est_0, '3']
 
 metadata:
   file_format: 1
