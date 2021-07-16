@@ -5,10 +5,12 @@ tags:
   - twinrx
   - sdr
   - array
-author:
+upstream author:
   - Srikanth Pagadarai <srikanth.pagadarai@gmail.com>
   - Travis Collins <travisfcollins@gmail.com>
   - Alexander Wyglinski <alexw@wpi.edu>
+branch author:
+  - Henry Pick <hpick@hmc.edu>
 copyright_owner:
   - Srikanth Pagadarai
   - Travis Collins
