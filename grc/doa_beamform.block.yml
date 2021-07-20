@@ -30,13 +30,13 @@ inputs:
 - label: in
   domain: stream
   dtype: float
-  vlen: num_antennas
+  vlen: ${num_antennas}
 
 outputs:
 - label: out
   domain: stream
-  dtype: short
-  vlen: ${resolution * 2 * resolution}
+  dtype: byte
+  vlen: 1
 
 documentation: |-
   " Takes an input vector of phase differences and then performs beamforming given an array specification. Outputs a matrix of shorts that can be viewed in the Video SDL sink with its dimensions set to 2*resolution width and resolution height.

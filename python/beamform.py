@@ -33,13 +33,18 @@ class beamform(gr.sync_block):
     def __init__(self, norm_spacing: float, num_antennas: int, resolution: int, array_type: str):
         gr.sync_block.__init__(self,
             name="beamform",
-            in_sig=gr.io_signature(1, 1, gr.sizeof_float*num_antennas),
-            out_sig=gr.io_signature(1, 1, gr.sizeof_short*(180**2)))
+            in_sig=[(np.single, num_antennas)],
+            out_sig=[np.byte])
         self.norm_spacing = norm_spacing
         self.num_antennas = num_antennas
         self.array_type = array_type # may not be needed after this
         self.resolution = resolution
         self.antennas = np.ndarray
+
+        # display coordinates
+        self.phi = 0
+        self.theta = 0
+        self.flag = True
 
         if array_type == 'square':
             assert(self.num_antennas == 4)
@@ -114,11 +119,21 @@ Compute the error between a vector of signal phase differences and generated vec
     def work(self, input_items, output_items):
         in0 = input_items[0]
         out = output_items[0]
-        for i in range(self.resolution):
-            theta = i * 360/self.resolution/180*math.pi
-            for j in range(self.resolution):
-                phi = j*360/self.resolution/180*math.pi
-                out[i*self.resolution + j] = self.distance_error(in0, theta, phi)
 
-        return len(output_items[0])
+        for i in range(len(in0)):
+
+
+            if self.phi == self.resolution*2:
+                self.phi = 0
+                self.theta = self.theta + 1
+            if self.theta == self.resolution:
+                self.theta = 0
+                    
+            phi_ang = self.phi * 360/self.resolution/180*math.pi
+            theta_ang = self.theta * 180/self.resolution/180*math.pi
+            out[i] = self.distance_error(in0[i], theta_ang, phi_ang)
+                    
+            self.phi = self.phi+1
+
+        return len(out)
 
