@@ -27,5 +27,6 @@ install(FILES
     MUSIC_lin_array.h
     autocorrelate.h
     calibrate_lin_array.h
-    find_local_max.h DESTINATION include/doa
+    find_local_max.h
+    MUSIC_sq_array.h DESTINATION include/doa
 )

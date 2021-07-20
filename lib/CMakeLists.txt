@@ -29,7 +29,7 @@ list(APPEND doa_sources
     autocorrelate_impl.cc
     calibrate_lin_array_impl.cc
     find_local_max_impl.cc
-    )
+    MUSIC_sq_array_impl.cc )
 
 set(doa_sources "${doa_sources}" PARENT_SCOPE)
 if(NOT doa_sources)

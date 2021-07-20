@@ -1,0 +1,49 @@
+id: doa_beamform
+label: Beamform
+category: DoA
+
+templates:
+  imports: import doa
+  make: doa.beamform(${norm_spacing}, ${num_antennas}, ${resolution}, ${array_type})
+
+parameters:
+- id: norm_spacing
+  label: Normalized Spacing
+  dtype: float
+  default: '0.5'
+- id: num_antennas
+  label: Number of Antennas
+  dtype: int
+  default: '4'
+- id: resolution
+  label: Resolution
+  dtype: float
+  default: '50'
+- id: array_type
+  label: Array Type
+  dtype: enum
+  default: '0'
+  options: ['0', '1']
+  option_labels: [Linear, Square]
+
+inputs:
+- label: in
+  domain: stream
+  dtype: float
+  vlen: num_antennas
+
+outputs:
+- label: out
+  domain: stream
+  dtype: short
+  vlen: ${resolution * 2 * resolution}
+
+documentation: |-
+  " Takes an input vector of phase differences and then performs beamforming given an array specification. Outputs a matrix of shorts that can be viewed in the Video SDL sink with its dimensions set to 2*resolution width and resolution height.
+  Args:
+    norm_spacing: normalized spacing between antennas (physical distance/wavelength of narrow-band recieving signal). For linear arrays, the distance between adjacent elements. For square arrays, the closest distance between two corners.
+    num_antennas: number of antennas in the array (input signal vector length)
+    resolution: number of steps in the beamforming interpolation
+    array_type: type of array, either linear or square
+  "
+file_format: 1
