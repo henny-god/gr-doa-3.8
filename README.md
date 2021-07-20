@@ -1,13 +1,13 @@
 # About gr-doa
-gr-doa is a demonstration on the phase synchronization capability of Ettus Research's TwinRX daughtercards. 
-TwinRX daughtercards can achieve a high degree of accurate phase synchronization except for constant 
-repeatable relative phase offsets. We provide apps to determine the accuracy of phase synchronization achieved 
-and to estimate DoA which fundamentally requires accurate phase synchronization 
-across the receive streams.
+gr-doa-3.8 is a branch of the gr-doa repository from Ettus Research which aims to:
+ - port the project to gnuradio 3.8, migrating the project's initial code to a build environment that works on newer debian and arch linux systems.
+ - have a wider array of doa blocks. The original library only implements MUSIC but there are a number of other doa algorithms that I plan to put in here
+ - be hardware agnostic. All you should need is a phase-coherent multi-channel receiver
+
+From the original repository, "We provide apps to determine the accuracy of phase synchronization achieved and to estimate DoA which fundamentally requires accurate phase synchronization across the receive streams."
 
 ### Basic Dependencies
- - UHD >= 3.10.1.0
- - gnuradio >= 3.7.10.1
+ - gnuradio >= 3.8
  - armadillo >= 7.300
 
 ### Dependencies Needed for QA Testing
@@ -20,11 +20,14 @@ across the receive streams.
  - texlive-latex-base
 
 ### What is implemented?
- - A wrapper to the USRP source block when using an X310 with 1 or 2 TwinRXs
  - Relative phase offset measurement and correction
  - Antenna element calibration for linear arrays
  - MUSIC algorithm for linear arrays
  - Root-MUSIC algorithm for linear arrays 
+
+### Planned Features
+ - MUSIC for square arrays
+ - move from armadillo to gsl for building on embedded hardware
 
 ### OSs Tested 
  - Ubuntu 14.04, Ubuntu 16.04 

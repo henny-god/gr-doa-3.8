@@ -9,12 +9,10 @@ parameters:
     label: Num. Max. Values
     dtype: int
     default: '1'
-    hide: ${ 'part' if vlen == 1 else 'none' }
 -   id: vector_len
     label: Vector Len.
     dtype: int
     default: 2**9
-    hide: ${ 'part' if vlen == 1 else 'none' }
 -   id: x_min
     label: X min
     dtype: float
