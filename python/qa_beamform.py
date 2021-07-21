@@ -21,7 +21,7 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-from beamform import beamform
+import doa_swig as doa
 
 class qa_beamform(gr_unittest.TestCase):
 
@@ -32,9 +32,19 @@ class qa_beamform(gr_unittest.TestCase):
         self.tb = None
 
     def test_001_t(self):
+        # some input phases
+        norm_spacing = 0.5
+        num_antennas = 4
+        resolution = 16
+        array_type = 0 # linear array
+
+        # this will 
+        input_phases = [0, 0, 0, 0]
+        self.doa_beamform = doa.beamform(0.5, 4, 16, 
         # set up fg
         self.tb.run()
         # check data
+
 
 
 if __name__ == '__main__':

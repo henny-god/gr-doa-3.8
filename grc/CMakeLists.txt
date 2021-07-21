@@ -30,5 +30,6 @@ install(FILES
     doa_phase_correct.block.yml
     doa_phase_offset_est.block.yml
     doa_MUSIC_sq_array.block.yml
+    doa_beamform.block.yml
     doa_beamform.block.yml DESTINATION share/gnuradio/grc/blocks
 )

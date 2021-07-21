@@ -132,7 +132,7 @@ if (ARMADILLO_FOUND)
 else ()
     message(FATAL_ERROR "Armadillo required to compile doa")
 endif ()
-
+find_package(GSL REQUIRED)
 find_package(Doxygen)
 
 ########################################################################

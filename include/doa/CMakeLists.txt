@@ -28,5 +28,6 @@ install(FILES
     autocorrelate.h
     calibrate_lin_array.h
     find_local_max.h
-    MUSIC_sq_array.h DESTINATION include/doa
+    MUSIC_sq_array.h
+    beamform.h DESTINATION include/doa
 )

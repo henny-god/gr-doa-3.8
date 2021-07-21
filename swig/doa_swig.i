@@ -14,6 +14,7 @@
 #include "doa/calibrate_lin_array.h"
 #include "doa/find_local_max.h"
 #include "doa/MUSIC_sq_array.h"
+#include "doa/beamform.h"
 %}
 
 %include "doa/antenna_correction.h"
@@ -28,3 +29,5 @@ GR_SWIG_BLOCK_MAGIC2(doa, calibrate_lin_array);
 GR_SWIG_BLOCK_MAGIC2(doa, find_local_max);
 %include "doa/MUSIC_sq_array.h"
 GR_SWIG_BLOCK_MAGIC2(doa, MUSIC_sq_array);
+%include "doa/beamform.h"
+GR_SWIG_BLOCK_MAGIC2(doa, beamform);

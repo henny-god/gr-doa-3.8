@@ -22,14 +22,15 @@
 # Setup library
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
-
 list(APPEND doa_sources
     antenna_correction_impl.cc
     MUSIC_lin_array_impl.cc
     autocorrelate_impl.cc
     calibrate_lin_array_impl.cc
     find_local_max_impl.cc
-    MUSIC_sq_array_impl.cc )
+    MUSIC_sq_array_impl.cc
+    linalg_utils.c
+    beamform_impl.cc)
 
 set(doa_sources "${doa_sources}" PARENT_SCOPE)
 if(NOT doa_sources)
@@ -38,7 +39,7 @@ if(NOT doa_sources)
 endif(NOT doa_sources)
 
 add_library(gnuradio-doa SHARED ${doa_sources})
-target_link_libraries(gnuradio-doa gnuradio::gnuradio-runtime ${ARMADILLO_LIBRARIES})
+target_link_libraries(gnuradio-doa gnuradio::gnuradio-runtime ${ARMADILLO_LIBRARIES} gsl gslcblas m)
 target_include_directories(gnuradio-doa
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     PUBLIC $<INSTALL_INTERFACE:include>
