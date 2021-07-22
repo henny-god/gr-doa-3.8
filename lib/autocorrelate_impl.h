@@ -25,7 +25,7 @@
 
 #include <doa/autocorrelate.h>
 
-#include <armadillo>
+#include <gsl/gsl_matrix_complex_float.h>
 
 namespace gr {
   namespace doa {
@@ -38,8 +38,11 @@ namespace gr {
       const int d_overlap_size;
       const int d_avg_method; // value assigned using the initialization list of the constructor
       int d_nonoverlap_size;
-      arma::cx_fmat d_J;
-      arma::cx_fmat d_input_matrix;
+      gsl_matrix_complex_float* d_J;
+      gsl_matrix_complex_float* d_input_matrix;
+      gsl_complex_float cx_one;
+      gsl_complex_float cx_zero;
+      gsl_complex_float d_snapshot_mul;
 
      public:
       autocorrelate_impl(int inputs, int snapshot_size, int overlap_size, int avg_method);

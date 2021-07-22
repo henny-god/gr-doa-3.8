@@ -20,6 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <gsl/gsl_blas.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -27,7 +28,8 @@
 #include <gnuradio/io_signature.h>
 #include "autocorrelate_impl.h"
 
-#include <armadillo>
+#include <gsl/gsl_matrix_complex_float.h>
+
 #define COPY_MEM false  // Do not copy matrices into separate memory
 #define FIX_SIZE true   // Keep dimensions of matrices constant
 
@@ -56,12 +58,21 @@ namespace gr {
       d_nonoverlap_size = d_snapshot_size-d_overlap_size;
       set_history(d_overlap_size+1);
 
+      // complex constants
+      GSL_SET_COMPLEX(&cx_one, 1, 0);
+      GSL_SET_COMPLEX(&cx_zero, 0, 0);
+      GSL_SET_COMPLEX(&d_snapshot_mul, 1.0/d_snapshot_size, 0);
+
       // Create container for temporary matrix
-      d_input_matrix = arma::cx_fmat(snapshot_size,inputs);
+      d_input_matrix = gsl_matrix_complex_float_alloc(snapshot_size,inputs);
 
       // initialize the reflection matrix
-      d_J.eye(d_num_inputs, d_num_inputs);
-      d_J = fliplr(d_J);
+      d_J = gsl_matrix_complex_float_alloc(d_num_inputs, d_num_inputs);
+      for(int i = 1; i <= d_num_inputs; i++) {
+	gsl_matrix_complex_float_set(d_J, i, d_num_inputs - i, cx_one);
+      }
+
+
     }
 
     /*
@@ -69,6 +80,8 @@ namespace gr {
      */
     autocorrelate_impl::~autocorrelate_impl()
     {
+      gsl_matrix_complex_float_free(d_input_matrix);
+      gsl_matrix_complex_float_free(d_J);
     }
 
     void
@@ -94,19 +107,28 @@ namespace gr {
         // Form input matrix
         for(int k=0; k<d_num_inputs; k++) 
         {
-            memcpy((void*)d_input_matrix.colptr(k),
-            ((gr_complex*)input_items[k]+i*d_nonoverlap_size),
-            sizeof(gr_complex)*d_snapshot_size);
-		}
+	  // access the column vector
+	  gsl_vector_complex_float_view col = gsl_vector_complex_float_view_array((float*)input_items[k] + i*d_nonoverlap_size, sizeof(gr_complex)*d_snapshot_size);
+	  gsl_matrix_complex_float_set_col(d_input_matrix, k, &col.vector);
 
-        // Make output pointer into matrix pointer
-        arma::cx_fmat out_matrix(out+d_num_inputs*d_num_inputs*i,d_num_inputs,d_num_inputs,COPY_MEM,FIX_SIZE);
+            // memcpy((void*)d_input_matrix.colptr(k),
+            // ((gr_complex*)input_items[k]+i*d_nonoverlap_size),
+            // sizeof(gr_complex)*d_snapshot_size);
+	    // 	}
 
-        // Do autocorrelation
-        out_matrix = (1.0/d_snapshot_size)*d_input_matrix.st()*conj(d_input_matrix);
-        if (d_avg_method == 1)
-            out_matrix = 0.5*out_matrix+(0.5/d_snapshot_size)*d_J*conj(out_matrix)*d_J;
+	  // Make output pointer into matrix pointer
+	  gsl_matrix_complex_float_view out_matrix = gsl_matrix_complex_float_view_array((float *)out + d_num_inputs*d_num_inputs*i, d_num_inputs, d_num_inputs);
 
+	  // Do autocorrelation
+	  gsl_blas_cgemm(CblasConjTrans, CblasNoTrans, cx_one, d_input_matrix, d_input_matrix, cx_zero, &out_matrix.matrix);
+	  gsl_matrix_complex_float_scale(&out_matrix.matrix, d_snapshot_mul);
+	  //out_matrix = (1.0/d_snapshot_size)*d_input_matrix.st()*conj(d_input_matrix);
+	  if (d_avg_method == 1) {
+	    //TODO: implement this with blas. Going to be pretty tough
+            //out_matrix = 0.5*out_matrix+(0.5/d_snapshot_size)*d_J*conj(out_matrix)*d_J;
+	    //gsl_blas_cgemm(
+	  }
+	}
       }
 
       // Tell runtime system how many input items we consumed on
@@ -116,6 +138,5 @@ namespace gr {
       // Tell runtime system how many output items we produced.
       return (output_matrices);
     }
-
   } /* namespace doa */
 } /* namespace gr */
