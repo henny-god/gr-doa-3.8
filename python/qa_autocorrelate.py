@@ -118,7 +118,8 @@ class qa_autocorrelate (gr_unittest.TestCase):
         # check data
         expected_S_x_equals_observed_S_x = True
         for ii in range(num_ss*num_inputs*num_inputs):            
-            print(abs(expected_S_x[ii] - observed_S_x[ii]))
+            print(expected_S_x[ii])
+            print(observed_S_x[ii], '\n')
             if abs(expected_S_x[ii]-observed_S_x[ii]) > 1.0:
                 expected_S_x_equals_observed_S_x = False
                 self.assertTrue(expected_S_x_equals_observed_S_x)

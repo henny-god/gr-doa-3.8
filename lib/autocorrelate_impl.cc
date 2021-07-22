@@ -64,7 +64,7 @@ namespace gr {
       GSL_SET_COMPLEX(&d_snapshot_mul, 1.0/d_snapshot_size, 0);
 
       // Create container for temporary matrix
-      d_input_matrix = gsl_matrix_complex_float_alloc(snapshot_size,inputs);
+      d_input_matrix = gsl_matrix_complex_float_alloc(d_num_inputs,d_snapshot_size);
 
       // initialize the reflection matrix
       d_J = gsl_matrix_complex_float_alloc(d_num_inputs, d_num_inputs);
@@ -88,7 +88,7 @@ namespace gr {
     autocorrelate_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
       // Setup input output relationship
-      for (int i=0; i<ninput_items_required.size(); i++)
+      for (int i=0; i < ninput_items_required.size(); i++)
         ninput_items_required[i] = d_nonoverlap_size*noutput_items;
     }
 
@@ -108,26 +108,21 @@ namespace gr {
         for(int k=0; k<d_num_inputs; k++) 
         {
 	  // access the column vector
-	  gsl_vector_complex_float_view col = gsl_vector_complex_float_view_array((float*)input_items[k] + i*d_nonoverlap_size, d_snapshot_size);
-	  gsl_matrix_complex_float_set_col(d_input_matrix, k, &col.vector);
+	  // correctly reads vectors
+	  gsl_vector_complex_float_view row = gsl_vector_complex_float_view_array((float*)input_items[k] + i*d_nonoverlap_size, d_snapshot_size);
+	  gsl_matrix_complex_float_set_row(d_input_matrix, k, &row.vector);
+	}
 
-            // memcpy((void*)d_input_matrix.colptr(k),
-            // ((gr_complex*)input_items[k]+i*d_nonoverlap_size),
-            // sizeof(gr_complex)*d_snapshot_size);
-	    // 	}
+	// Make output pointer into matrix pointer, 
+	// correctly gets memory address
+	gsl_matrix_complex_float_view out_matrix = gsl_matrix_complex_float_view_array((float *)out + d_num_inputs*d_num_inputs*i, d_num_inputs, d_num_inputs);
 
-	  // Make output pointer into matrix pointer
-	  gsl_matrix_complex_float_view out_matrix = gsl_matrix_complex_float_view_array((float *)out + d_num_inputs*d_num_inputs*i, d_num_inputs, d_num_inputs);
-
-	  // Do autocorrelation
-	  gsl_blas_cgemm(CblasConjTrans, CblasNoTrans, cx_one, d_input_matrix, d_input_matrix, cx_zero, &out_matrix.matrix);
-	  gsl_matrix_complex_float_scale(&out_matrix.matrix, d_snapshot_mul);
-	  //out_matrix = (1.0/d_snapshot_size)*d_input_matrix.st()*conj(d_input_matrix);
-	  if (d_avg_method == 1) {
+	// Do autocorrelation
+	gsl_blas_cgemm(CblasNoTrans, CblasConjTrans, d_snapshot_mul, d_input_matrix, d_input_matrix, cx_zero, &out_matrix.matrix);
+	if (d_avg_method == 1) {
 	    //TODO: implement this with blas. Going to be pretty tough
             //out_matrix = 0.5*out_matrix+(0.5/d_snapshot_size)*d_J*conj(out_matrix)*d_J;
 	    //gsl_blas_cgemm(
-	  }
 	}
       }
 
