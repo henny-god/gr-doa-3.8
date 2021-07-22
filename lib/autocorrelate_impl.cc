@@ -69,7 +69,7 @@ namespace gr {
       // initialize the reflection matrix
       d_J = gsl_matrix_complex_float_alloc(d_num_inputs, d_num_inputs);
       for(int i = 1; i <= d_num_inputs; i++) {
-	gsl_matrix_complex_float_set(d_J, i, d_num_inputs - i, cx_one);
+	gsl_matrix_complex_float_set(d_J, i-1, d_num_inputs - i, cx_one);
       }
 
 
@@ -108,7 +108,7 @@ namespace gr {
         for(int k=0; k<d_num_inputs; k++) 
         {
 	  // access the column vector
-	  gsl_vector_complex_float_view col = gsl_vector_complex_float_view_array((float*)input_items[k] + i*d_nonoverlap_size, sizeof(gr_complex)*d_snapshot_size);
+	  gsl_vector_complex_float_view col = gsl_vector_complex_float_view_array((float*)input_items[k] + i*d_nonoverlap_size, d_snapshot_size);
 	  gsl_matrix_complex_float_set_col(d_input_matrix, k, &col.vector);
 
             // memcpy((void*)d_input_matrix.colptr(k),
