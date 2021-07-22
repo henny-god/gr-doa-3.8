@@ -22,6 +22,7 @@
 #define INCLUDED_DOA_BEAMFORM_IMPL_H
 
 #include <doa/beamform.h>
+#include <gsl/gsl_matrix_float.h>
 
 namespace gr {
   namespace doa {
@@ -48,6 +49,7 @@ namespace gr {
       );
     };
 
+    char frobenius_norm_mat_b(gsl_matrix_float* a);
   } // namespace doa
 } // namespace gr
 

@@ -23,6 +23,8 @@
 #include "config.h"
 #endif
 
+#define MAT_NORM 0.5 // normalization calculated empirically
+
 #include <gnuradio/io_signature.h>
 #include "beamform_impl.h"
 #include <string.h>
@@ -30,19 +32,6 @@
 #include <gsl/gsl_blas.h>
 #include <math.h>
 
-
-//#include "linalg_utils.h"
-
-float frobenius_norm_mat_f(gsl_matrix_float* a) {
-  float sum = 0;
-
-  for (int i = 0; i < a->size1; i++) {
-    for (int j = 0; j < a->size2; j++) {
-      sum += pow(gsl_matrix_float_get(a, i, j), 2.0);
-    }
-  }
-  return sqrt(sum);
-}
 
 namespace gr {
   namespace doa {
@@ -60,7 +49,7 @@ namespace gr {
      */
     beamform_impl::beamform_impl(float norm_spacing, int num_antennas, int resolution, int array_type)
       : gr::sync_block("beamform",
-		       gr::io_signature::make(1, 1, sizeof(float)*num_antennas),
+		       gr::io_signature::make(num_antennas, num_antennas, sizeof(float)),
 		       gr::io_signature::make(1, 1, resolution*resolution*2*sizeof(char))),
 	d_norm_spacing(norm_spacing),
 	d_num_antennas(num_antennas),
@@ -155,22 +144,19 @@ namespace gr {
 	// form input phase difference matrix
 	for(int i = 0; i < d_num_antennas; i++) {
 	  for(int j = 0; j < d_num_antennas; j++) {
-	    gsl_matrix_float_set(phase_diff_m, i, j, in[item*d_num_antennas+i] - in[item*d_num_antennas + j]);
+	    gsl_matrix_float_set(phase_diff_m, i, j, *((float*)input_items[i] + item) - *((float*)input_items[j] + item));
 	  }
 	}
 
-
-	// normalize the double to a byte
-	float normalization = 255/(d_num_antennas*M_PI*M_PI);
-	
 	for(int i = 0; i < d_resolution; i++) {
 	  for(int j = 0; j < 2*d_resolution; j++) {
-	    // look up the phase vector corresponding with every theta and phi
+	    // look up the phase vector corresponding to theta and phi
 	    gsl_matrix_float_const_view lut_diff_m = gsl_matrix_float_const_view_array(d_angle_phase_lut + d_num_antennas*d_num_antennas*(i*d_resolution + j), d_num_antennas, d_num_antennas);
 
 	    // compute the normalized difference between the two matrices
 	    gsl_matrix_float_sub(phase_diff_m, &lut_diff_m.matrix);
-	    out[item] = frobenius_norm_mat_f(phase_diff_m);
+	    // find the max value in the beamforming array
+	    out[i*2*d_resolution + j] = frobenius_norm_mat_b(phase_diff_m);
 	  }
 	}
       }
@@ -179,6 +165,16 @@ namespace gr {
       gsl_matrix_float_free(phase_diff_m);
       return noutput_items;
     }
+
+    char frobenius_norm_mat_b(gsl_matrix_float *a) {
+      char sum = 0;
+      for (int i = 0; i < a->size1; i++) {
+	for(int j = 0; j < a->size2; j++) {
+	  sum += 1/gsl_matrix_float_get(a, i, j)*MAT_NORM;
+	}
+      }
+      return sum;
+    }
+
   } /* namespace doa */
 } /* namespace gr */
-

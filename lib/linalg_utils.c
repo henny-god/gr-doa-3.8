@@ -3,8 +3,8 @@
 
 
 
-float frobenius_norm_mat_f(gsl_matrix_float* a) {
-  float sum = 0;
+float frobenius_norm_mat_b(gsl_matrix_float* a) {
+  char sum = 0;
 
   for (int i = 0; i < a->size1; i++) {
     for (int j = 0; j < a->size2; j++) {
