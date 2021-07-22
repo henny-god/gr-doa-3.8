@@ -2,3 +2,4 @@
 build
 apps/*.py
 .cache/
+/lib/gsl_tests.c
