@@ -23,9 +23,8 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
+import testbench
 import itertools
-import oct2py
-import numpy
 import os
 import doa_swig as doa
 
@@ -38,6 +37,8 @@ class qa_autocorrelate (gr_unittest.TestCase):
         self.tb = None
 
     def test_001_t (self):
+        # number of snapshots to compute
+        num_ss = 1
         # length of each snapshot
         len_ss = 2048
         # overlap size of each snapshot
@@ -47,17 +48,11 @@ class qa_autocorrelate (gr_unittest.TestCase):
         # apply Forward-Backward Averaging?
         FB = False
         
-        # Generate auto-correlation vector from octave
-        oc = oct2py.Oct2Py()
-        oc.addpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'examples'))		
-        print(oc)
-        # TODO: fix this unpacking issue
-        [expected_S_x, data] = oc.doa_testbench_create('autocorrelate_test_input_gen', len_ss, overlap_size, num_inputs, FB)
-        expected_S_x = tuple(expected_S_x)
-        expected_S_x = list(itertools.chain.from_iterable(expected_S_x))
-        # num of snapshots
-        n_ss = len(expected_S_x)/(num_inputs*num_inputs)
-        
+        # generate samples and expected autocorrelation
+        [data, expected_S_x] = testbench.autocorrelation_testbench(num_ss, len_ss, overlap_size, num_inputs, FB)
+        expected_S_x = expected_S_x.flatten()
+
+
         ##################################################
         # Blocks & Connections
         ##################################################
@@ -65,44 +60,42 @@ class qa_autocorrelate (gr_unittest.TestCase):
         self.vec_sink = blocks.vector_sink_c(num_inputs*num_inputs)
         # setup sources
         for p in range(num_inputs):
-            # Add vector source
+            # Add vector source, assinging them to each column in the data matrix
             object_name_vs = 'vec_source_'+str(p)
             setattr(self, object_name_vs, blocks.vector_source_c(data[:, p].tolist(), False) )
             # Connect
             self.tb.connect((getattr(self,object_name_vs), 0), (self.doa_autocorrelate_0, p))
             
-            self.tb.connect((self.doa_autocorrelate_0, 0), (self.vec_sink, 0))
-            
-            # set up fg
-            self.tb.run ()
-            observed_S_x = self.vec_sink.data()
-            
-            # check data
-            expected_S_x_equals_observed_S_x = True
-            for ii in range(n_ss*num_inputs*num_inputs):            
-                if abs(expected_S_x[ii]-observed_S_x[ii]) > 1.0:
-                    expected_S_x_equals_observed_S_x = False
-                    self.assertTrue(expected_S_x_equals_observed_S_x)
+        self.tb.connect((self.doa_autocorrelate_0, 0), (self.vec_sink, 0))
+        
+        # set up fg
+        self.tb.run ()
+        observed_S_x = self.vec_sink.data()
+        
+        # check data
+        expected_S_x_equals_observed_S_x = True
+        for ii in range(num_ss*num_inputs*num_inputs):            
+            if abs(expected_S_x[ii]-observed_S_x[ii]) > 1.0:
+                expected_S_x_equals_observed_S_x = False
+                self.assertTrue(expected_S_x_equals_observed_S_x)
 
     def test_002_t (self):
+        # number of snapshots to compute
+        num_ss = 20
         # length of each snapshot
         len_ss = 1024
         # overlap size of each snapshot
-        overlap_size = 256
+        overlap_size = 512
         # num of inputs
         num_inputs = 8
         # apply Forward-Backward Averaging?
         FB = True
         
-        # Generate auto-correlation vector from octave
-        oc = oct2py.Oct2Py()
-        oc.addpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'examples'))		
-        [expected_S_x, data] = oc.doa_testbench_create('autocorrelate_test_input_gen', len_ss, overlap_size, num_inputs, FB)
-        expected_S_x = tuple(expected_S_x)
-        expected_S_x = list(itertools.chain.from_iterable(expected_S_x))
-        # num of snapshots
-        n_ss = len(expected_S_x)/(num_inputs*num_inputs)
-        
+        # generate samples and expected autocorrelation
+        [data, expected_S_x] = testbench.autocorrelation_testbench(num_ss, len_ss, overlap_size, num_inputs, FB)
+        expected_S_x = expected_S_x.flatten()
+
+
         ##################################################
         # Blocks & Connections
         ##################################################
@@ -110,26 +103,29 @@ class qa_autocorrelate (gr_unittest.TestCase):
         self.vec_sink = blocks.vector_sink_c(num_inputs*num_inputs)
         # setup sources
         for p in range(num_inputs):
-            # Add vector source
+            # Add vector source, assinging them to each column in the data matrix
             object_name_vs = 'vec_source_'+str(p)
             setattr(self, object_name_vs, blocks.vector_source_c(data[:, p].tolist(), False) )
             # Connect
             self.tb.connect((getattr(self,object_name_vs), 0), (self.doa_autocorrelate_0, p))
             
-            self.tb.connect((self.doa_autocorrelate_0, 0), (self.vec_sink, 0))
-            
-            # set up fg
-            self.tb.run ()
-            observed_S_x = self.vec_sink.data()
-            
-            # check data
-            expected_S_x_equals_observed_S_x = True
-            for ii in range(n_ss*num_inputs*num_inputs):            
-                if abs(expected_S_x[ii]-observed_S_x[ii]) > 1.0:
-                    expected_S_x_equals_observed_S_x = False
-                    self.assertTrue(expected_S_x_equals_observed_S_x)
+        self.tb.connect((self.doa_autocorrelate_0, 0), (self.vec_sink, 0))
+        
+        # set up fg
+        self.tb.run ()
+        observed_S_x = self.vec_sink.data()
+        
+        # check data
+        expected_S_x_equals_observed_S_x = True
+        for ii in range(num_ss*num_inputs*num_inputs):            
+            print(abs(expected_S_x[ii] - observed_S_x[ii]))
+            if abs(expected_S_x[ii]-observed_S_x[ii]) > 1.0:
+                expected_S_x_equals_observed_S_x = False
+                self.assertTrue(expected_S_x_equals_observed_S_x)
 
     def test_003_t (self):
+        # number of snapshots to compute
+        num_ss = 16
         # length of each snapshot
         len_ss = 256
         # overlap size of each snapshot
@@ -139,14 +135,9 @@ class qa_autocorrelate (gr_unittest.TestCase):
         # apply Forward-Backward Averaging?
         FB = True
         
-        # Generate auto-correlation vector from octave
-        oc = oct2py.Oct2Py()
-        oc.addpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'examples'))		
-        [expected_S_x, data] = oc.doa_testbench_create('autocorrelate_test_input_gen', len_ss, overlap_size, num_inputs, FB)
-        expected_S_x = tuple(expected_S_x)
-        expected_S_x = list(itertools.chain.from_iterable(expected_S_x))
-        # num of snapshots
-        n_ss = len(expected_S_x)/(num_inputs*num_inputs)
+        # Generate auto-correlation vector from testbench
+        [data, expected_S_x] = testbench.autocorrelation_testbench(num_ss, len_ss, overlap_size, num_inputs, FB)
+        expected_S_x = expected_S_x.flatten()
         
         ##################################################
         # Blocks & Connections
@@ -161,19 +152,21 @@ class qa_autocorrelate (gr_unittest.TestCase):
             # Connect
             self.tb.connect((getattr(self,object_name_vs), 0), (self.doa_autocorrelate_0, p))
             
-            self.tb.connect((self.doa_autocorrelate_0, 0), (self.vec_sink, 0))
-            
-            # set up fg
-            self.tb.run ()
-            observed_S_x = self.vec_sink.data()
-            
-            # check data
-            expected_S_x_equals_observed_S_x = True
-            for ii in range(n_ss*num_inputs*num_inputs):            
-                if abs(expected_S_x[ii]-observed_S_x[ii]) > 1.0:
-                    expected_S_x_equals_observed_S_x = False
-                    
-                    self.assertTrue(expected_S_x_equals_observed_S_x)
+        self.tb.connect((self.doa_autocorrelate_0, 0), (self.vec_sink, 0))
+        
+        # set up fg
+        self.tb.run ()
+        observed_S_x = self.vec_sink.data()
+        
+        # check data
+        expected_S_x_equals_observed_S_x = True
+        for ii in range(num_ss*num_inputs*num_inputs):            
+            if abs(expected_S_x[ii]-observed_S_x[ii]) > 1.0:
+                expected_S_x_equals_observed_S_x = False
+                
+                self.assertTrue(expected_S_x_equals_observed_S_x)
 
 if __name__ == '__main__':
+    print('Blocked waiting for GDB attach (pid = %d)' % (os.getpid(),))
+    input('Press Enter to continue: ')
     gr_unittest.run(qa_autocorrelate)
