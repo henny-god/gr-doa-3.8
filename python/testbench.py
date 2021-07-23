@@ -49,11 +49,11 @@ def distance_error(antennas, theta_source, phi_source, theta, phi):
     expected_dist = angle_to_phase_offset(antennas, theta, phi)
     
     # TODO: need to normalize error for the gnuradio block
-    error = np.linalg.norm(source_dist - expected_dist)
+    error = np.linalg.norm(source_dist - expected_dist)**2
     return error
 
 def autocorrelation_testbench(num_ss: int, len_ss: int, overlap_size: int, num_inputs: int, FB: bool):
-    num_samps = num_ss*(len_ss - overlap_size) + overlap_size
+    num_samps = int(num_ss*(len_ss - overlap_size) + overlap_size)
     
     # generate data matrix of random samples
     data = np.random.randn(num_samps, num_inputs) + 1j*np.random.randn(num_samps, num_inputs)
@@ -78,7 +78,7 @@ def autocorrelation_testbench(num_ss: int, len_ss: int, overlap_size: int, num_i
     return [data, out_matrix]
 
 
-def beamform_testbench(norm_spacing: float, num_antennas:int, resolution: int, theta: float, phi: float, array_type: str):
+def beamform_testbench(norm_spacing: float, num_antennas:int, resolution: int, theta: float, phi: float, array_type: int):
     n = [math.cos(phi)*math.sin(theta), math.sin(phi)*math.sin(theta), math.cos(theta)]
     arr = np.ndarray((num_antennas, 3), dtype=float)
     if array_type == 0:
@@ -88,15 +88,34 @@ def beamform_testbench(norm_spacing: float, num_antennas:int, resolution: int, t
     elif array_type == 2:
         arr = tetrahedron(norm_spacing)
 
+    source_dist = angle_to_phase_offset(arr, theta, phi)
+
     beamform_array = np.ndarray((resolution, 2*resolution), dtype=float)
     for i in range(resolution):
         theta_sample = i/resolution*math.pi
         for j in range(2*resolution):
             phi_sample = j/resolution*math.pi
-            beamform_array[i][j] = 1/distance_error(arr, theta, phi, theta_sample, phi_sample)
-    # normalize array to its largest value
-    beamform_array = beamform_array/beamform_array.max()*255
+            # hold the expected phase distance matrix for theta_sample and phi_sample
+            expected_dist = angle_to_phase_offset(arr, theta_sample, phi_sample)
+            # compute distance norm between arrays
+            norm = np.linalg.norm(source_dist - expected_dist)**2*24
+            if norm > 255:
+                norm = 255
+            else:
+                norm = int(norm)
+            beamform_array[i][j] = norm
+
+            # if i == 5 and j == 8:
+            #     print("Debug sample from python testbench\n=======================")
+            #     print("Phase diff input matrix: ")
+            #     print(source_dist)
+            #     print("Lut distances: ")
+            #     print(expected_dist)
+            #     print("Differences: ")
+            #     print(source_dist - expected_dist)
+            #     print("Normalized distance: ")
+            #     print(beamform_array[i][j])
+
     # array to hold some input phase offsets that will be fed into the actual block
     phase_offsets = angle_to_phase_offset(arr, theta, phi)[0,:]
-
     return beamform_array, phase_offsets

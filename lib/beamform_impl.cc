@@ -23,15 +23,15 @@
 #include "config.h"
 #endif
 
-#define MAT_NORM 0.5 // normalization calculated empirically
+#define MAT_NORM 24 // normalization calculated empirically
 
 #include <gnuradio/io_signature.h>
 #include "beamform_impl.h"
+#include <gsl/gsl_matrix_float.h>
 #include <string.h>
-#include <gsl/gsl_vector_float.h>
-#include <gsl/gsl_blas.h>
 #include <math.h>
-
+#include <stdint.h>
+#include <stdio.h>
 
 namespace gr {
   namespace doa {
@@ -60,9 +60,9 @@ namespace gr {
       if(!array_type) { // linear array
 	d_antenna_positions = new float[num_antennas*3];
 	for(int i = 0; i < num_antennas; i++) {
-	  d_antenna_positions[i] = 0;
-	  d_antenna_positions[i+1] = 0;
-	  d_antenna_positions[i+2] = i*d_norm_spacing - (d_num_antennas-1)*d_norm_spacing/2.0;
+	  d_antenna_positions[i*3] = 0;
+	  d_antenna_positions[i*3+1] = 0;
+	  d_antenna_positions[i*3+2] = i*d_norm_spacing - (d_num_antennas-1)*d_norm_spacing/2.0;
 	}
 	
       } else {
@@ -89,11 +89,10 @@ namespace gr {
       d_angle_phase_lut = new float[d_num_antennas*d_num_antennas*resolution*resolution*2]; // for each theta and phi, store d_num_antennas*d_num_antennas floats corresponding to pairwise phase offsets
       float *wave_arr = new float[3];
       float *diff_arr = new float[3];
-      gsl_vector_float_view wave_vec = gsl_vector_float_view_array(wave_arr, 3);
       for(int i = 0; i < resolution; i++) {
-	int theta = i*M_PI/resolution;
+	float theta = i*M_PI/resolution;
 	for(int j = 0; j < 2*resolution; j++) {
-	  int phi =  j*M_PI/resolution;
+	  float phi =  j*M_PI/resolution;
 	  // wave vector
 	  wave_arr[0] = sin(theta)*cos(phi);
 	  wave_arr[1] = sin(theta)*sin(phi);
@@ -101,15 +100,14 @@ namespace gr {
 	  
 	  for(int a = 0; a < d_num_antennas; a++) {
 	    // dot producte with wave vector and antenna vector is the phase difference between antenna 0 and antenna k
-	    gsl_vector_float_view antenna_a_pos_vf = gsl_vector_float_view_array(d_antenna_positions + a*3, 3);
 	    float *antenna_a_pos = d_antenna_positions + a*3;
 	    for(int b = 0; b < d_num_antennas; b++) {
 	      float *antenna_b_pos = d_antenna_positions + b*3;
-	      diff_arr[0] = antenna_a_pos[0] - antenna_b_pos[0];
-	      diff_arr[1] = antenna_a_pos[1] - antenna_b_pos[1];
-	      diff_arr[2] = antenna_a_pos[2] - antenna_b_pos[2];
+	      diff_arr[0] = antenna_b_pos[0] - antenna_a_pos[0];
+	      diff_arr[1] = antenna_b_pos[1] - antenna_a_pos[1];
+	      diff_arr[2] = antenna_b_pos[2] - antenna_a_pos[2];
 	      // TODO: make sure that these have the right sign
-	      d_angle_phase_lut[d_num_antennas*d_num_antennas*(i*2*d_resolution + j) + a*resolution + b] = diff_arr[0] * wave_arr[0] + diff_arr[1]*wave_arr[1] + diff_arr[2]*wave_arr[2];
+	      d_angle_phase_lut[d_num_antennas*d_num_antennas*(i*2*d_resolution + j) + a*d_num_antennas + b] = diff_arr[0] * wave_arr[0] + diff_arr[1]*wave_arr[1] + diff_arr[2]*wave_arr[2];
 	    }
 	  }
 	}
@@ -123,10 +121,7 @@ namespace gr {
      */
     beamform_impl::~beamform_impl()
     {
-      if(!d_array_type) {
-	delete[] d_antenna_positions;
-      }
-
+      delete[] d_antenna_positions;
       delete[] d_angle_phase_lut;
     }
 
@@ -138,27 +133,32 @@ namespace gr {
       const float *in = (const float *) input_items[0];
       char *out = (char *) output_items[0];
 
-      gsl_matrix_float* phase_diff_m = gsl_matrix_float_alloc(d_num_antennas, d_num_antennas);
+      gsl_matrix_float *phase_diff_m = gsl_matrix_float_alloc(d_num_antennas, d_num_antennas);
 
-      for (int item = 0; item < noutput_items; item++) {
+      for (int n_item = 0; n_item < noutput_items; n_item++) {
 	// form input phase difference matrix
 	for(int i = 0; i < d_num_antennas; i++) {
 	  for(int j = 0; j < d_num_antennas; j++) {
-	    gsl_matrix_float_set(phase_diff_m, i, j, *((float*)input_items[i] + item) - *((float*)input_items[j] + item));
+	    gsl_matrix_float_set(phase_diff_m, i, j, *((float*)input_items[j] + n_item) - *((float*)input_items[i] + n_item));
 	  }
 	}
+
+	gsl_matrix_float *error_mat = gsl_matrix_float_alloc(d_num_antennas, d_num_antennas);
 
 	for(int i = 0; i < d_resolution; i++) {
 	  for(int j = 0; j < 2*d_resolution; j++) {
 	    // look up the phase vector corresponding to theta and phi
-	    gsl_matrix_float_const_view lut_diff_m = gsl_matrix_float_const_view_array(d_angle_phase_lut + d_num_antennas*d_num_antennas*(i*d_resolution + j), d_num_antennas, d_num_antennas);
+	    gsl_matrix_float_view lut_diff_m = gsl_matrix_float_view_array(d_angle_phase_lut + d_num_antennas*d_num_antennas*(i*2*d_resolution + j), d_num_antennas, d_num_antennas);
+
+	    // copy phase differences into out location and map an array onto that block
+	    gsl_matrix_float_memcpy(error_mat, phase_diff_m);
 
 	    // compute the normalized difference between the two matrices
-	    gsl_matrix_float_sub(phase_diff_m, &lut_diff_m.matrix);
-	    // find the max value in the beamforming array
-	    out[i*2*d_resolution + j] = frobenius_norm_mat_b(phase_diff_m);
+	    gsl_matrix_float_sub(error_mat, &lut_diff_m.matrix);
+	    out[i*2*d_resolution + j] = frobenius_norm_mat(error_mat);
 	  }
 	}
+	gsl_matrix_float_free(error_mat);
       }
 
       // Tell runtime system how many output items we produced.
@@ -166,15 +166,18 @@ namespace gr {
       return noutput_items;
     }
 
-    char frobenius_norm_mat_b(gsl_matrix_float *a) {
-      char sum = 0;
-      for (int i = 0; i < a->size1; i++) {
-	for(int j = 0; j < a->size2; j++) {
-	  sum += 1/gsl_matrix_float_get(a, i, j)*MAT_NORM;
+    char beamform_impl::frobenius_norm_mat(gsl_matrix_float* mat) {
+      float sum = 0;
+      for (int i = 0; i < d_num_antennas; i++) {
+	for (int j = 0; j < d_num_antennas; j++) {
+	  sum += pow(gsl_matrix_float_get(mat, i, j), 2.0);
 	}
       }
-      return sum;
+      sum *= MAT_NORM;
+      if (sum > UCHAR_MAX)
+	return UCHAR_MAX;
+      else
+	return (char)sum;
     }
-
   } /* namespace doa */
 } /* namespace gr */

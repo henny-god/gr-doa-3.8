@@ -30,12 +30,14 @@ namespace gr {
     class beamform_impl : public beamform
     {
      private:
-      int d_norm_spacing;
+      float d_norm_spacing;
       int d_num_antennas;
       int d_array_type;
       int d_resolution;
       float* d_antenna_positions;
       float* d_angle_phase_lut;
+
+      char frobenius_norm_mat(gsl_matrix_float* mat);
 
      public:
       beamform_impl(float norm_spacing, int num_antennas, int resolution, int array_type);
@@ -48,8 +50,6 @@ namespace gr {
               gr_vector_void_star &output_items
       );
     };
-
-    char frobenius_norm_mat_b(gsl_matrix_float* a);
   } // namespace doa
 } // namespace gr
 

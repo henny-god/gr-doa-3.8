@@ -23,6 +23,8 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import doa_swig as doa
 import testbench
+import math
+import os
 
 class qa_beamform(gr_unittest.TestCase):
 
@@ -38,20 +40,20 @@ class qa_beamform(gr_unittest.TestCase):
         num_antennas = 4
         resolution = 16
         array_type = 0 # linear array
-        theta = 45
-        phi = 23
+        theta = 45/180*math.pi
+        phi = 23/180*math.pi
 
-        [beamform_matrix, phases] = testbench.autocorrelation_testbench(norm_spacing, num_antennas, resolution, theta, phi)
+        [beamform_matrix, phases] = testbench.beamform_testbench(norm_spacing, num_antennas, resolution, theta, phi, array_type)
         beamform_matrix = beamform_matrix.flatten()
 
         self.doa_beamform = doa.beamform(norm_spacing, num_antennas, resolution, array_type)
-        self.vec_sink = blocks.vector_sink_c(resolution*resolution*2)
+        self.vec_sink = blocks.vector_sink_b(resolution*resolution*2)
 
         # setup inputs
         for p in range(num_antennas):
             # add vector source, assign to each element in the data matrix
             object_name_vs = 'vec_source_'+str(p)
-            setattr(self, object_name_vs, blocks.vector_source_f(data=phases[p].tolist(), repeat=False))
+            setattr(self, object_name_vs, blocks.vector_source_f(data=[phases[p]], repeat=False))
             # connect
             self.tb.connect((getattr(self, object_name_vs), 0), (self.doa_beamform, p))
         self.tb.connect((self.doa_beamform, 0), (self.vec_sink, 0))
@@ -63,9 +65,10 @@ class qa_beamform(gr_unittest.TestCase):
         # check data
         beamform_matrix = beamform_matrix.flatten()
         for i in range(resolution*resolution*2):
-            self.assertTrue(abs(beamform_matrix[i] - observed_beamform[i]) > .1)
-
-
+            self.assertTrue(abs(beamform_matrix[i] - observed_beamform[i]) < .01)
 
 if __name__ == '__main__':
+    # UNCOMMENT FOR GDB DEBUGGING
+    # print("pid: = %d" % (os.getpid(), ))
+    # input('Press Enter to continue: ')
     gr_unittest.run(qa_beamform)
