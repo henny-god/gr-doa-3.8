@@ -40,8 +40,75 @@ class qa_beamform(gr_unittest.TestCase):
         num_antennas = 4
         resolution = 16
         array_type = 0 # linear array
-        theta = 45/180*math.pi
-        phi = 23/180*math.pi
+        theta = [45/180*math.pi]
+        phi = [23/180*math.pi]
+
+        [beamform_matrix, phases] = testbench.beamform_testbench(norm_spacing, num_antennas, resolution, theta, phi, array_type)
+        beamform_matrix = beamform_matrix.flatten()
+
+        self.doa_beamform = doa.beamform(norm_spacing, num_antennas, resolution, array_type)
+        self.vec_sink = blocks.vector_sink_b(resolution*resolution*2)
+
+        # setup inputs
+        for p in range(num_antennas):
+            # add vector source, assign to each element in the data matrix
+            object_name_vs = 'vec_source_'+str(p)
+            setattr(self, object_name_vs, blocks.vector_source_f(data=[phases[p]], repeat=False))
+            # connect
+            self.tb.connect((getattr(self, object_name_vs), 0), (self.doa_beamform, p))
+        self.tb.connect((self.doa_beamform, 0), (self.vec_sink, 0))
+        
+        # set up fg
+        self.tb.run()
+        observed_beamform = self.vec_sink.data()
+
+        # check data
+        beamform_matrix = beamform_matrix.flatten()
+        for i in range(resolution*resolution*2):
+            self.assertTrue(abs(beamform_matrix[i] - observed_beamform[i]) < .01)
+
+    def test_002_t(self):
+        # some input phases
+        norm_spacing = 0.5
+        num_antennas = 4
+        resolution = 32
+        array_type = 1 # square array
+        theta = [25/180*math.pi]
+        phi = [80/180*math.pi]
+
+        [beamform_matrix, phases] = testbench.beamform_testbench(norm_spacing, num_antennas, resolution, theta, phi, array_type)
+        beamform_matrix = beamform_matrix.flatten()
+
+        self.doa_beamform = doa.beamform(norm_spacing, num_antennas, resolution, array_type)
+        self.vec_sink = blocks.vector_sink_b(resolution*resolution*2)
+
+        # setup inputs
+        for p in range(num_antennas):
+            # add vector source, assign to each element in the data matrix
+            object_name_vs = 'vec_source_'+str(p)
+            setattr(self, object_name_vs, blocks.vector_source_f(data=[phases[p]], repeat=False))
+            # connect
+            self.tb.connect((getattr(self, object_name_vs), 0), (self.doa_beamform, p))
+        self.tb.connect((self.doa_beamform, 0), (self.vec_sink, 0))
+        
+        # set up fg
+        self.tb.run()
+        observed_beamform = self.vec_sink.data()
+
+        # check data
+        beamform_matrix = beamform_matrix.flatten()
+        for i in range(resolution*resolution*2):
+            self.assertTrue(abs(beamform_matrix[i] - observed_beamform[i]) < .01)
+
+    def test_003_t(self):
+        # some input phases
+        norm_spacing = 0.5
+        num_antennas = 4
+        resolution = 32
+        array_type = 0 # square array
+        # try multiple input samples
+        theta = [25/180*math.pi, 45/180*math.pi]
+        phi = [80/180*math.pi, 60/180*math.pi]
 
         [beamform_matrix, phases] = testbench.beamform_testbench(norm_spacing, num_antennas, resolution, theta, phi, array_type)
         beamform_matrix = beamform_matrix.flatten()

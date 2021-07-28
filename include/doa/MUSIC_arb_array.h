@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_DOA_MUSIC_SQ_ARRAY_H
-#define INCLUDED_DOA_MUSIC_SQ_ARRAY_H
+#ifndef INCLUDED_DOA_MUSIC_ARB_ARRAY_H
+#define INCLUDED_DOA_MUSIC_ARB_ARRAY_H
 
 #include <doa/api.h>
 #include <gnuradio/sync_block.h>
@@ -32,24 +32,24 @@ namespace gr {
      * \ingroup doa
      *
      */
-    class DOA_API MUSIC_sq_array : virtual public gr::sync_block
+    class DOA_API MUSIC_arb_array : virtual public gr::sync_block
     {
      public:
-      typedef boost::shared_ptr<MUSIC_sq_array> sptr;
+      typedef boost::shared_ptr<MUSIC_arb_array> sptr;
 
       /*!
-       * \brief Return a shared_ptr to a new instance of doa::MUSIC_sq_array.
+       * \brief Return a shared_ptr to a new instance of doa::MUSIC_arb_array.
        *
-       * To avoid accidental use of raw pointers, doa::MUSIC_sq_array's
+       * To avoid accidental use of raw pointers, doa::MUSIC_arb_array's
        * constructor is in a private implementation
-       * class. doa::MUSIC_sq_array::make is the public interface for
+       * class. doa::MUSIC_arb_array::make is the public interface for
        * creating new instances.
        */
-      static sptr make(float norm_spacing, int num_targets, int pspectrum_len);
+      static sptr make(int num_antennas, int num_targets, int pspectrum_len, char* array_config);
     };
 
   } // namespace doa
 } // namespace gr
 
-#endif /* INCLUDED_DOA_MUSIC_SQ_ARRAY_H */
+#endif /* INCLUDED_DOA_MUSIC_ARB_ARRAY_H */
 

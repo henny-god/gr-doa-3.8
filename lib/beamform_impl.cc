@@ -155,7 +155,7 @@ namespace gr {
 
 	    // compute the normalized difference between the two matrices
 	    gsl_matrix_float_sub(error_mat, &lut_diff_m.matrix);
-	    out[i*2*d_resolution + j] = frobenius_norm_mat(error_mat);
+	    out[n_item*d_resolution * d_resolution*2 + i*2*d_resolution + j] = frobenius_norm_mat(error_mat);
 	  }
 	}
 	gsl_matrix_float_free(error_mat);

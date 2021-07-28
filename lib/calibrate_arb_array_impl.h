@@ -18,11 +18,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_DOA_MUSIC_SQ_ARRAY_IMPL_H
-#define INCLUDED_DOA_MUSIC_SQ_ARRAY_IMPL_H
+#ifndef INCLUDED_DOA_CALIBRATE_ARB_ARRAY_IMPL_H
+#define INCLUDED_DOA_CALIBRATE_ARB_ARRAY_IMPL_H
 
-#include <doa/MUSIC_sq_array.h>
-
+#include <doa/calibrate_arb_array.h>
 #include <armadillo>
 
 using namespace arma;
@@ -30,25 +29,21 @@ using namespace arma;
 namespace gr {
   namespace doa {
 
-    class MUSIC_sq_array_impl : public MUSIC_sq_array
+    class calibrate_arb_array_impl : public calibrate_arb_array
     {
      private:
-      typedef struct pair {
-	float x;
-	float y;
-      } pair;
-	
-      float d_norm_spacing;
-      int d_num_targets;
-      int d_pspectrum_len;
-      float *d_theta, *d_phi;
-      pair d_array_loc[4];
-      cx_fmat d_vii_matrix;
-      cx_fmat d_vii_matrix_trans;
+      // Nothing to declare in this block.
+      int d_num_antennas;
+      int d_pilot_angle;
+      char *d_array_config;
+      fmat d_array_loc;
+      cx_fmat d_diagmat_v_vec;
+      cx_fmat d_diagmat_v_vec_conj;
 
      public:
-      MUSIC_sq_array_impl(float norm_spacing, int num_targets, int pspectrum_len);
-      ~MUSIC_sq_array_impl();
+      calibrate_arb_array_impl(int num_antennas, float pilot_angle, char* array_config);
+      ~calibrate_arb_array_impl();
+      void amv(cx_fcolvec& v_ii, fmat& array_loc, float theta);
 
       // Where all the action really happens
       int work(
@@ -61,5 +56,5 @@ namespace gr {
   } // namespace doa
 } // namespace gr
 
-#endif /* INCLUDED_DOA_MUSIC_SQ_ARRAY_IMPL_H */
+#endif /* INCLUDED_DOA_CALIBRATE_ARB_ARRAY_IMPL_H */
 

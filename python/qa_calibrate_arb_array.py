@@ -23,7 +23,7 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import doa_swig as doa
 
-class qa_MUSIC_sq_array(gr_unittest.TestCase):
+class qa_calibrate_arb_array(gr_unittest.TestCase):
 
     def setUp(self):
         self.tb = gr.top_block()
@@ -38,4 +38,4 @@ class qa_MUSIC_sq_array(gr_unittest.TestCase):
 
 
 if __name__ == '__main__':
-    gr_unittest.run(qa_MUSIC_sq_array)
+    gr_unittest.run(qa_calibrate_arb_array)
