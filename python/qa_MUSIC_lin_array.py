@@ -25,7 +25,7 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import doa_swig as doa
 import scipy
-import oct2py
+import testbench
 import os
 
 class qa_MUSIC_lin_array (gr_unittest.TestCase):
@@ -62,9 +62,7 @@ class qa_MUSIC_lin_array (gr_unittest.TestCase):
 		PERTURB = False
 
 		# Generate auto-correlation vector from octave
-		oc = oct2py.Oct2Py()
-		oc.addpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'examples'))
-		music_linear_input = oc.doa_testbench_create('music_test_input_gen', len_ss, overlap_size, num_arr_ele, FB, 'linear', num_arr_ele, norm_spacing, PERTURB, expected_aoa)
+		music_linear_input = testbench.music_input_gen(len_ss, overlap_size, num_arr_ele, FB, 'linear', num_arr_ele, norm_spacing, PERTURB, expected_aoa)
 		music_linear_input = music_linear_input.flatten().tolist()
 
 		##################################################

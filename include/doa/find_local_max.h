@@ -49,11 +49,13 @@ namespace gr {
        * \brief Make a block to find the local maxima and their locations 
        *
        * \param num_max_vals    Number of max. values
-       * \param vector_len      Length of the input vector
+       * \param array_x_len    X Length of the input array
+       * \param array_y_len    Y Length of the input array
+       * \param dimension       Dimension of the input array (either 1 or 2)
        * \param x_min           Min. value of the index vector
        * \param x_max           Max. value of the index vector
        */
-      static sptr make(int num_max_vals, int vector_len, float x_min, float x_max);
+      static sptr make(int num_max_vals, int array_x_len, int array_y_len, int dimension, float x_min, float x_max, float y_min, float y_max);
     };
 
   } // namespace doa

@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import math
 
 def square_array(norm_spacing: float):
@@ -119,3 +120,68 @@ def beamform_testbench(norm_spacing: float, num_antennas:int, resolution: int, t
     # array to hold some input phase offsets that will be fed into the actual block
     phase_offsets = angle_to_phase_offset(arr, theta, phi)[0,:]
     return beamform_array, phase_offsets
+
+def amv(num_antennas: int, norm_spacing: float, arr_type: str, theta: float, config_file: str):
+    """
+    Generate amv for a two-dimensional antenna configuration
+    """
+    wave_vector = np.array([math.cos(theta), math.sin(theta)])
+
+    if arr_type == 'linear':
+        return np.exp(-2j*math.pi*norm_spacing*math.cos(theta)*np.array(range(num_antennas)))
+    elif arr_type == 'square':
+        array = square_array(norm_spacing)
+        offset_normalized = np.array(np.dot(array, wave_vector))
+        return np.exp(-2j*math.pi*offset_normalized)
+
+    elif arr_type == 'custom':
+        pos_arr = np.ndarray((num_antennas, 2), dtype=float)
+        try:
+            file = open(config_file, 'r') # Clear file
+            file.close()
+        except:
+            sys.stderr.write("Configuration "+config_file+", not valid\n")
+            print(sys.stderr)
+            sys.exit(1)
+        file = open(config_file, 'r')
+
+        lines = file.readlines()
+        if len(lines) < num_antennas*2:
+            raise ValueError("Number of antennas specified in config file is too small")
+        elif len(lines) > num_antennas*2:
+            raise ValueError("Number of antennas specified in config file is too large")
+        for i in range(num_antennas):
+            pos_arr[2*i][0] = float(lines[2*i])
+            pos_arr[2*i][1] = float(lines[2*i+1])
+
+        offset_normalized = np.array(np.dot(pos_arr, wave_vector))
+        return np.exp(-2j*math.pi*offset_normalized)
+    
+
+def music_input_gen(len_ss: int, overlap_size: int, num_ss: int, num_antennas: int, FB: bool, arr_type: str, norm_spacing: float, PERTURB: bool, expected_aoa: float):
+    nonoverlap_size = len_ss - overlap_size
+    len_input = nonoverlap_size*num_ss + overlap_size
+
+    if PERTURB:
+        pass
+    # generate signal and multiply by amv
+    # assuming we're looking at a 5kHz signal at 2Msmps
+    freq = 5e3
+    samp_rate = 2e6
+    samples_per_period = samp_rate/freq # should be 400
+
+    config_file = ''
+
+    array_manifold = amv(num_antennas, norm_spacing, arr_type, expected_aoa, config_file)
+    signal = np.exp(-2j*math.pi/samples_per_period*np.array(range(len_input)))
+
+    signal_matrix = np.dot(amv, signal)
+
+
+
+    
+
+    
+
+    pass
+
