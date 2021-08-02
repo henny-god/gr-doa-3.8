@@ -24,6 +24,8 @@
 #include <doa/beamform.h>
 #include <gsl/gsl_matrix_float.h>
 
+#include <gsl/gsl_complex.h>
+
 namespace gr {
   namespace doa {
 
@@ -32,15 +34,19 @@ namespace gr {
      private:
       float d_norm_spacing;
       int d_num_antennas;
-      int d_array_type;
       int d_resolution;
-      float* d_antenna_positions;
-      float* d_angle_phase_lut;
+      int d_capon;
+      char *d_array_config;
+      float *d_antenna_positions;
+      gr_complex *d_amv_lut;
+
+      gsl_complex_float i;
+      gsl_complex one;
 
       char frobenius_norm_mat(gsl_matrix_float* mat);
 
      public:
-      beamform_impl(float norm_spacing, int num_antennas, int resolution, int array_type);
+      beamform_impl(int num_antennas, int resolution, char *array_config, int capon);
       ~beamform_impl();
 
       // Where all the action really happens
@@ -49,6 +55,7 @@ namespace gr {
               gr_vector_const_void_star &input_items,
               gr_vector_void_star &output_items
       );
+      void amv(float theta_source, float phi_source, gr_complex *lut_pointer);
     };
   } // namespace doa
 } // namespace gr

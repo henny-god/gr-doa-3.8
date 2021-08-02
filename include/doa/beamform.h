@@ -45,7 +45,7 @@ namespace gr {
        * class. doa::beamform::make is the public interface for
        * creating new instances.
        */
-      static sptr make(float norm_spacing, int num_antennas, int resolution, int array_type);
+      static sptr make(int num_antennas, int resolution, char *array_config, int capon);
     };
 
   } // namespace doa
