@@ -1,0 +1,59 @@
+id: doa_beamform_1d
+label: beamform_1d
+category: '[doa]'
+
+templates:
+  imports: import doa
+  make: doa.beamform_1d(${num_antennas}, ${resolution}, ${array_config}, ${capon}, ${theta_min}, ${theta_max})
+
+parameters:
+- id: num_antennas
+  label: Number of Antennas
+  dtype: int
+  default: '4'
+- id: resolution
+  label: Sweep Resolution
+  dtype: int
+  default: '128'
+- id: array_config
+  label: Array Type
+  dtype: find_file
+  default: '~/array.cfg'
+- id: capon
+  label: Beamforming Technique
+  dtype: enum
+  default: '0'
+  options: ['0', '1']
+  option_labels: [Regular, Capon]
+- id: theta_min
+  label: Minimum Theta of Sweep
+  dtype: float
+  default: 0
+- id: theta_max
+  label: Maximum Theta of Sweep
+  dtype: float
+  default: 180
+
+inputs:
+- label: in
+  domain: stream
+  dtype: complex
+  vlen: ${num_antennas*num_antennas}
+
+outputs:
+- label: out
+  domain: stream
+  dtype: float
+  vlen: ${resolution}
+
+documentation: |-
+  "Takes an autocorrelation matrix for num_antennas then performs beamforming given an array specification. Outputs a one-dimensional array of bytes corresponding to the beamforming power at angle steps.
+  Args:
+    num_antennas: number of antennas in the array (input signal vector length)
+    resolution: number of steps in the beamforming interpolation
+    array_config: specify array configuration in a file
+    capon: whether or not to use the Capon improvement
+    theta_min: starting theta value of sweep
+    theta_max: ending theta value of sweep
+  "
+file_format: 1

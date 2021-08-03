@@ -79,84 +79,65 @@ def autocorrelation_testbench(num_ss: int, len_ss: int, overlap_size: int, num_i
     return [data, out_matrix]
 
 
-def beamform_testbench(norm_spacing: float, num_antennas:int, resolution: int, theta: float, phi: float, array_type: int):
-    n = [math.cos(phi)*math.sin(theta), math.sin(phi)*math.sin(theta), math.cos(theta)]
-    arr = np.ndarray((num_antennas, 3), dtype=float)
-    if array_type == 0:
-        arr = linear_array(norm_spacing, num_antennas)
-    elif array_type == 1:
-        arr = square_array(norm_spacing)
-    elif array_type == 2:
-        arr = tetrahedron(norm_spacing)
-
-    source_dist = angle_to_phase_offset(arr, theta, phi)
-
-    beamform_array = np.ndarray((resolution, 2*resolution), dtype=float)
-    for i in range(resolution):
-        theta_sample = i/resolution*math.pi
-        for j in range(2*resolution):
-            phi_sample = j/resolution*math.pi
-            # hold the expected phase distance matrix for theta_sample and phi_sample
-            expected_dist = angle_to_phase_offset(arr, theta_sample, phi_sample)
-            # compute distance norm between arrays
-            norm = np.linalg.norm(source_dist - expected_dist)**2*24
-            if norm > 255:
-                norm = 255
-            else:
-                norm = int(norm)
-            beamform_array[i][j] = norm
-
-            # if i == 5 and j == 8:
-            #     print("Debug sample from python testbench\n=======================")
-            #     print("Phase diff input matrix: ")
-            #     print(source_dist)
-            #     print("Lut distances: ")
-            #     print(expected_dist)
-            #     print("Differences: ")
-            #     print(source_dist - expected_dist)
-            #     print("Normalized distance: ")
-            #     print(beamform_array[i][j])
-
-    # array to hold some input phase offsets that will be fed into the actual block
-    phase_offsets = angle_to_phase_offset(arr, theta, phi)[0,:]
-    return beamform_array, phase_offsets
-
-def amv(num_antennas: int, norm_spacing: float, arr_type: str, theta: float, config_file: str):
-    """
-    Generate amv for a two-dimensional antenna configuration
-    """
-    wave_vector = np.array([math.cos(theta), math.sin(theta)])
-
-    if arr_type == 'linear':
-        return np.exp(-2j*math.pi*norm_spacing*math.cos(theta)*np.array(range(num_antennas)))
-    elif arr_type == 'square':
-        array = square_array(norm_spacing)
-        offset_normalized = np.array(np.dot(array, wave_vector))
-        return np.exp(-2j*math.pi*offset_normalized)
-
-    elif arr_type == 'custom':
-        pos_arr = np.ndarray((num_antennas, 2), dtype=float)
-        try:
-            file = open(config_file, 'r') # Clear file
-            file.close()
-        except:
-            sys.stderr.write("Configuration "+config_file+", not valid\n")
-            print(sys.stderr)
-            sys.exit(1)
-        file = open(config_file, 'r')
-
-        lines = file.readlines()
-        if len(lines) < num_antennas*2:
-            raise ValueError("Number of antennas specified in config file is too small")
-        elif len(lines) > num_antennas*2:
-            raise ValueError("Number of antennas specified in config file is too large")
-        for i in range(num_antennas):
-            pos_arr[2*i][0] = float(lines[2*i])
-            pos_arr[2*i][1] = float(lines[2*i+1])
-
-        offset_normalized = np.array(np.dot(pos_arr, wave_vector))
-        return np.exp(-2j*math.pi*offset_normalized)
+def channel_model(antennas, sig_angle, sig_mag, num_samps, snr):
+    assert(len(sig_angle) == len(sig_mag))
+    M = num_samps
+    N = len(antennas)
     
+    n = 1/np.sqrt(snr)*np.random.randn(N, M)*np.exp(1j*np.random.uniform(0, 2*np.pi, (N, M)))
+    
+    A = np.ndarray((len(antennas), len(sig_angle)), dtype=complex)
+    for i in range(len(sig_angle)):
+        A[:,i] = amv(antennas, theta=sig_angle[i][0], phi=sig_angle[i][1])
+    
+    S = np.random.randn(len(sig_angle), M)*np.exp(1j*np.random.uniform(0,2*np.pi,(len(sig_angle), M)))
+    
+    for i in range(len(sig_mag)):
+        S[i,:] = S[i,:]*sig_mag[i]
+    
+    X = np.dot(A, S) + n
+    return X
+
+    
+
+def amv(antennas, theta, phi):
+    '''
+    computes the array manifold vector for an array specified by antennas
+    '''
+    
+    # compute signal vector from theta and phi
+    l = len(antennas)
+    n = [math.sin(theta)*math.cos(phi), math.sin(theta)*math.sin(phi), math.cos(theta)]
+    ret = np.ndarray(l, dtype=float)
+    
+    # the phase distance between each element in the array is just the dot product
+    # between the distance 
+    for i in range(l):
+        ret[i] = np.dot(n, antennas[i]-antennas[0]) # signed negative by typical array config
+    return np.exp(2j*(math.pi*ret))    
+
+
+def beamform_1d_testbench(antennas, num_samples: int, resolution: int, theta: float, snr: float, capon: int):
+    x = channel_model(antennas, theta, np., 1, num_samples, snr)
+    Rxx = np.dot(x, np.conj(x.T))/num_samples
+    thetas = range(resolution)
+    phis = range(2*resolution)
+    powers = np.ndarray((resolution, 2*resolution), dtype=float)
+
+    for theta in range(thetas):
+        theta = theta/resolution * 180
+        for phi in range(phis):
+            phi = phi/resolution * 180
+            a = amv(antennas, np.deg2rad(theta), np.deg2rad(phi))
+            if capon:
+                Rinv = np.linalg.inv(Rxx)
+                powers[theta][phi] = 1/np.dot(np.conj(a), np.dot(Rinv, a)).real
+            else:
+                w = a/len(antennas)
+                powers = np.dot(np.conj(w), np.dot(Rxx, w)).real
+    return [powers, Rxx]
+                
+        
 
 def music_input_gen(len_ss: int, overlap_size: int, num_ss: int, num_antennas: int, FB: bool, arr_type: str, norm_spacing: float, PERTURB: bool, expected_aoa: float):
     nonoverlap_size = len_ss - overlap_size

@@ -30,7 +30,6 @@ list(APPEND doa_sources
     find_local_max_impl.cc
     MUSIC_arb_array_impl.cc
     linalg_utils.c
-    beamform_impl.cc
     calibrate_arb_array_impl.cc)
 
 set(doa_sources "${doa_sources}" PARENT_SCOPE)
