@@ -23,6 +23,30 @@ def antenna_distance_matrix(antennas):
             ret[i][j] = np.linalg.norm(antennas[i] - antennas[j])
     return ret
 
+def read_array_config(num_antennas: int, array_config: str):
+    array = np.ndarray((num_antennas, 3), dtype=float)
+    try:
+        file = open(array_config, 'r')
+        file.close()
+    except:
+        sys.stderr.write("Configuration "+ array_config +", not valid\n")
+        print(sys.stderr)
+        sys.exit(1)
+    file = open(array_config, 'r')
+    lines = file.readlines()
+    file.close()
+    if len(lines) < num_antennas*3:
+        raise ValueError("Number of antennas specified in config file is too small")
+    elif len(lines) > num_antennas*3:
+        raise ValueError("Number of antennas specified in config file is too large")
+    for i in range(num_antennas):
+        array[i][0] = float(lines[3*i])
+        array[i][1] = float(lines[3*i+1])
+        array[i][2] = float(lines[3*i+2])
+
+    return array
+    
+
 def angle_to_phase_offset(antennas, theta, phi):
     '''
     computes the phase offset between antennas based on their physical locations and 
@@ -79,7 +103,7 @@ def autocorrelation_testbench(num_ss: int, len_ss: int, overlap_size: int, num_i
     return [data, out_matrix]
 
 
-def channel_model(antennas, sig_angle, sig_mag, num_samps, snr):
+def channel_model(antennas, sig_angle, sig_mag, num_samps, snr) -> np.array:
     assert(len(sig_angle) == len(sig_mag))
     M = num_samps
     N = len(antennas)
@@ -117,24 +141,43 @@ def amv(antennas, theta, phi):
     return np.exp(2j*(math.pi*ret))    
 
 
-def beamform_1d_testbench(antennas, num_samples: int, resolution: int, theta: float, snr: float, capon: int):
-    x = channel_model(antennas, theta, np., 1, num_samples, snr)
-    Rxx = np.dot(x, np.conj(x.T))/num_samples
-    thetas = range(resolution)
-    phis = range(2*resolution)
+def beamform_1d_testbench(antennas, num_samples: int, resolution: int, phi: float, snr: float, capon: int):
+    x = channel_model(antennas, [[np.pi/2, phi]], [1], num_samples, snr)
+    Rxx = np.dot(x, np.conj(x.T))*(1/num_samples)
+    amvs = np.ndarray((resolution, len(antennas)), dtype=complex)
+    powers = np.ndarray((resolution), dtype=float)
+
+    for i in range(resolution):
+        phi_step = i * np.pi/resolution
+        amvs[i] = amv(antennas, np.pi/2, phi_step)
+
+    if capon:
+        Rinv = np.linalg.inv(Rxx)
+        powers = np.log10(1/np.einsum('ay, ay->a', np.conj(amvs), np.einsum('ay,xy->xa', Rinv, amvs)).real)
+    else:
+        amvs = amvs/len(antennas)
+        powers = np.log10(np.einsum('ay, ay->a', np.conj(amvs), np.einsum('ay,xy->xa', Rxx, amvs)).real)
+
+    return [powers, Rxx]
+
+def beamform_2d_testbench(antennas, num_samples: int, resolution: int, angles, snr: float, capon: int):
+    x = channel_model(antennas, angles, [1], num_samples, snr)
+    Rxx = np.dot(x, np.conj(x.T))*(1/num_samples)
+    amvs = np.ndarray((resolution, 2*resolution), len(antennas), dtype=complex)
     powers = np.ndarray((resolution, 2*resolution), dtype=float)
 
-    for theta in range(thetas):
-        theta = theta/resolution * 180
-        for phi in range(phis):
-            phi = phi/resolution * 180
-            a = amv(antennas, np.deg2rad(theta), np.deg2rad(phi))
-            if capon:
-                Rinv = np.linalg.inv(Rxx)
-                powers[theta][phi] = 1/np.dot(np.conj(a), np.dot(Rinv, a)).real
-            else:
-                w = a/len(antennas)
-                powers = np.dot(np.conj(w), np.dot(Rxx, w)).real
+
+    for i in range(resolution):
+        theta_step = i * np.pi/resolution
+        for j in range(resolution*2):
+            phi_step = j * np.pi/resolution
+            amvs[i][j] = amv(antennas, theta_step, phi_step)
+    if capon:
+        Rinv = np.linalg.inv(Rxx)
+        powers = np.log10(1/np.einsum('xyz, xyz->xy', np.conj(amvs), np.einsum('az, xyz->xya', Rinv, amvs)).real)
+    else:
+        amvs = amvs/len(antennas)
+        powers = np.einsum('xyz, xyz->xy', np.conj(amvs, np.einsum('az, xyz->xya', Rxx, amvs)).real)
     return [powers, Rxx]
                 
         

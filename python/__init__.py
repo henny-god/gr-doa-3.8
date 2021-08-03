@@ -40,3 +40,4 @@ from .save_antenna_calib import save_antenna_calib
 from .phase_correct import phase_correct
 from .phase_offset_est import phase_offset_est
 from .beamform_1d import beamform_1d
+from .beamform_2d import beamform_2d
