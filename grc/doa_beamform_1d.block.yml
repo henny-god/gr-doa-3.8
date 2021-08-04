@@ -1,10 +1,10 @@
 id: doa_beamform_1d
 label: beamform_1d
-category: '[doa]'
+category: 'DoA'
 
 templates:
   imports: import doa
-  make: doa.beamform_1d(${num_antennas}, ${resolution}, ${array_config}, ${capon}, ${theta_min}, ${theta_max})
+  make: doa.beamform_1d(${num_antennas}, ${resolution}, ${array_config}, ${capon}, ${phi_min}, ${phi_max}, ${theta})
 
 parameters:
 - id: num_antennas
@@ -17,7 +17,7 @@ parameters:
   default: '128'
 - id: array_config
   label: Array Type
-  dtype: find_file
+  dtype: file_open
   default: '~/array.cfg'
 - id: capon
   label: Beamforming Technique
@@ -25,14 +25,18 @@ parameters:
   default: '0'
   options: ['0', '1']
   option_labels: [Regular, Capon]
-- id: theta_min
-  label: Minimum Theta of Sweep
+- id: phi_min
+  label: Minimum Phi of Sweep
   dtype: float
   default: 0
-- id: theta_max
-  label: Maximum Theta of Sweep
+- id: phi_max
+  label: Maximum Phi of Sweep
   dtype: float
   default: 180
+- id: theta
+  label: Theta plane
+  dtype: float
+  default: 1.5708
 
 inputs:
 - label: in

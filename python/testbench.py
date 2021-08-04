@@ -77,6 +77,9 @@ def distance_error(antennas, theta_source, phi_source, theta, phi):
     error = np.linalg.norm(source_dist - expected_dist)**2
     return error
 
+def autocorrelate(mat):
+    return np.dot(mat,np.conj(mat.T))/mat.shape[1]
+
 def autocorrelation_testbench(num_ss: int, len_ss: int, overlap_size: int, num_inputs: int, FB: bool):
     num_samps = int(num_ss*(len_ss - overlap_size) + overlap_size)
     
@@ -103,7 +106,7 @@ def autocorrelation_testbench(num_ss: int, len_ss: int, overlap_size: int, num_i
     return [data, out_matrix]
 
 
-def channel_model(antennas, sig_angle, sig_mag, num_samps, snr) -> np.array:
+def channel_model(antennas, sig_angle, sig_mag, num_samps, snr):
     assert(len(sig_angle) == len(sig_mag))
     M = num_samps
     N = len(antennas)
@@ -143,7 +146,7 @@ def amv(antennas, theta, phi):
 
 def beamform_1d_testbench(antennas, num_samples: int, resolution: int, phi: float, snr: float, capon: int):
     x = channel_model(antennas, [[np.pi/2, phi]], [1], num_samples, snr)
-    Rxx = np.dot(x, np.conj(x.T))*(1/num_samples)
+    Rxx = autocorrelate(x)
     amvs = np.ndarray((resolution, len(antennas)), dtype=complex)
     powers = np.ndarray((resolution), dtype=float)
 
@@ -153,17 +156,17 @@ def beamform_1d_testbench(antennas, num_samples: int, resolution: int, phi: floa
 
     if capon:
         Rinv = np.linalg.inv(Rxx)
-        powers = np.log10(1/np.einsum('ay, ay->a', np.conj(amvs), np.einsum('ay,xy->xa', Rinv, amvs)).real)
+        powers = 10*np.log10(1/np.einsum('ay, ay->a', np.conj(amvs), np.einsum('ay,xy->xa', Rinv, amvs)).real)
     else:
-        amvs = amvs/len(antennas)
-        powers = np.log10(np.einsum('ay, ay->a', np.conj(amvs), np.einsum('ay,xy->xa', Rxx, amvs)).real)
+        amvs = amvs/np.sqrt(len(antennas))
+        powers = 10*np.log10(np.einsum('ay, ay->a', np.conj(amvs), np.einsum('ay,xy->xa', Rxx, amvs)).real)
 
     return [powers, Rxx]
 
-def beamform_2d_testbench(antennas, num_samples: int, resolution: int, angles, snr: float, capon: int):
-    x = channel_model(antennas, angles, [1], num_samples, snr)
-    Rxx = np.dot(x, np.conj(x.T))*(1/num_samples)
-    amvs = np.ndarray((resolution, 2*resolution), len(antennas), dtype=complex)
+def beamform_2d_testbench(antennas, num_samples: int, resolution: int, angles, amplitudes, snr: float, capon: int):
+    x = channel_model(antennas, angles, amplitudes, num_samples, snr)
+    Rxx = autocorrelate(x)
+    amvs = np.ndarray((resolution, 2*resolution, len(antennas)), dtype=complex)
     powers = np.ndarray((resolution, 2*resolution), dtype=float)
 
 
@@ -172,12 +175,15 @@ def beamform_2d_testbench(antennas, num_samples: int, resolution: int, angles, s
         for j in range(resolution*2):
             phi_step = j * np.pi/resolution
             amvs[i][j] = amv(antennas, theta_step, phi_step)
+
     if capon:
         Rinv = np.linalg.inv(Rxx)
-        powers = np.log10(1/np.einsum('xyz, xyz->xy', np.conj(amvs), np.einsum('az, xyz->xya', Rinv, amvs)).real)
+        powers = 10*np.log10(1/np.einsum('xyz, xyz->xy', np.conj(amvs), np.einsum('az, xyz->xya', Rinv, amvs)).real)
     else:
-        amvs = amvs/len(antennas)
-        powers = np.einsum('xyz, xyz->xy', np.conj(amvs, np.einsum('az, xyz->xya', Rxx, amvs)).real)
+        amvs = amvs/np.sqrt(len(antennas))
+        powers = 10*np.log10(np.einsum('xyz, xyz->xy', np.conj(amvs), np.einsum('az, xyz->xya', Rxx, amvs)).real)
+    powers_min = np.min(powers)
+    powers = (powers  - powers_min) /(np.max(powers) - powers_min)*255
     return [powers, Rxx]
                 
         

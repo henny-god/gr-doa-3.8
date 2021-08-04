@@ -36,15 +36,15 @@ class qa_beamform_1d(gr_unittest.TestCase):
 
     def test_001_t(self):
         resolution = 512
-        theta = np.deg2rad(69)
+        theta = np.deg2rad(130)
         num_samples = 512
-        capon = 0
+        capon = 1
         array_config = '../../python/testbench/linear_6.conf'
 
 
         antennas = testbench.read_array_config(6, array_config)
 
-        [testbench_powers, Rxx] = testbench.beamform_1d_testbench(antennas, num_samples, resolution,theta, 10, capon)
+        [testbench_powers, Rxx] = testbench.beamform_1d_testbench(antennas, num_samples, resolution, theta, 10, capon)
 
         self.beamform_1d = beamform_1d(len(antennas), resolution, array_config, capon, 0, np.pi, np.pi/2)
         self.vec_source = blocks.vector_source_c(data=Rxx.flatten(), repeat=False, vlen=len(antennas)*len(antennas))
@@ -59,12 +59,7 @@ class qa_beamform_1d(gr_unittest.TestCase):
         # check data
 
         observed_powers = self.vec_sink.data()
-        print((observed_powers - testbench_powers))
-        # there is always a constant offset in the values from the testbench and the actual block, what the hell could be causing this?????
-            
-
-
-
+        self.assertTrue(np.max(np.abs(observed_powers - testbench_powers)) < 1e-4)
 
 if __name__ == '__main__':
     gr_unittest.run(qa_beamform_1d)
