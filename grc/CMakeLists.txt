@@ -32,5 +32,6 @@ install(FILES
     doa_MUSIC_arb_array.block.yml
     doa_calibrate_arb_array.block.yml
     doa_beamform_1d.block.yml
-    doa_beamform_2d.block.yml DESTINATION share/gnuradio/grc/blocks
+    doa_beamform_2d.block.yml
+    doa_music_1d.block.yml DESTINATION share/gnuradio/grc/blocks
 )

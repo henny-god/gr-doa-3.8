@@ -39,7 +39,8 @@ GR_PYTHON_INSTALL(
     phase_correct.py
     phase_offset_est.py
     beamform_1d.py
-    beamform_2d.py DESTINATION ${GR_PYTHON_DIR}/doa
+    beamform_2d.py
+    music_1d.py DESTINATION ${GR_PYTHON_DIR}/doa
 )
 
 ########################################################################
@@ -59,3 +60,4 @@ GR_ADD_TEST(qa_beamform ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_beam
 GR_ADD_TEST(qa_calibrate_arb_array ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_calibrate_arb_array.py)
 GR_ADD_TEST(qa_beamform_1d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_beamform_1d.py)
 GR_ADD_TEST(qa_beamform_2d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_beamform_2d.py)
+GR_ADD_TEST(qa_music_1d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_music_1d.py)

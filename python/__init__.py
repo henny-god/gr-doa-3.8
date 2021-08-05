@@ -41,3 +41,4 @@ from .phase_correct import phase_correct
 from .phase_offset_est import phase_offset_est
 from .beamform_1d import beamform_1d
 from .beamform_2d import beamform_2d
+from .music_1d import music_1d
