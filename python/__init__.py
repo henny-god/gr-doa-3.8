@@ -42,3 +42,5 @@ from .phase_offset_est import phase_offset_est
 from .beamform_1d import beamform_1d
 from .beamform_2d import beamform_2d
 from .music_1d import music_1d
+from .music_2d import music_2d
+from .peak_search_1d import peak_search_1d

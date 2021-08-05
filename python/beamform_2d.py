@@ -76,7 +76,7 @@ class beamform_2d(gr.sync_block):
             for j in range(self.resolution * 2):
                 phi = float(j) / resolution * (phi_max - phi_min) / 2 + phi_min
                 wave_vector = np.array([math.sin(theta)*math.cos(phi), math.sin(theta)*math.sin(phi), math.cos(theta)])
-                self.amvs[i][j] = np.exp(2j*math.pi*np.array(np.dot(self.array - self.array[0], wave_vector)))
+                self.amvs[i][j] = np.exp(2j*math.pi*np.array(np.dot(self.array, wave_vector)))
 
         # if not capon beamforming, we normalize the weight vectors by the number of antennas
         if not self.capon:
@@ -94,9 +94,9 @@ class beamform_2d(gr.sync_block):
             output = np.ndarray((self.resolution, self.resolution*2), dtype=np.single)
             if self.capon:
                 Rxxinv = np.linalg.inv(Rxx)
-                output = 10*np.log10(1/np.einsum('xyz , xyz-> xy', np.conj(self.amvs), np.einsum('az, xyz->xya', Rxxinv, self.amvs)).real)
+                output = np.log10(1/np.einsum('xyz , xyz-> xy', np.conj(self.amvs), np.einsum('az, xyz->xya', Rxxinv, self.amvs)).real)
             else:
-                output = np.log10(1/np.einsum('xyz, xyz->xy', np.conj(self.amvs), np.einsum('az, xyz->xya', Rxx, self.amvs)).real)
+                output = np.log10(np.einsum('xyz, xyz->xy', np.conj(self.amvs), np.einsum('az, xyz->xya', Rxx, self.amvs)).real)
 
             #normalize to byte range for video display
             output_min = np.min(output)

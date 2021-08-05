@@ -10,7 +10,7 @@ options:
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: beamforming_2d_demo
+    id: music_1d_demo
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -21,7 +21,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: Entirely Simulated Demo of Beamforming in 2d
+    title: Entirely Simulated Demo of MUSIC in 1d
     window_size: ''
   states:
     bus_sink: false
@@ -65,7 +65,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [928, 32.0]
+    coordinate: [880, 16.0]
     rotation: 0
     state: true
 - name: frame_rate
@@ -140,44 +140,11 @@ blocks:
     coordinate: [600, 16.0]
     rotation: 0
     state: true
-- name: phi
-  id: variable
-  parameters:
-    comment: ''
-    value: np.deg2rad(phi_deg)
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [920, 152.0]
-    rotation: 0
-    state: true
-- name: phi_deg
-  id: variable_qtgui_range
-  parameters:
-    comment: ''
-    gui_hint: ''
-    label: Phi
-    min_len: '200'
-    orient: Qt.Horizontal
-    rangeType: float
-    start: '0'
-    step: '5'
-    stop: '360'
-    value: '0'
-    widget: counter_slider
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [224, 188.0]
-    rotation: 0
-    state: true
 - name: samp_rate
   id: variable
   parameters:
     comment: ''
-    value: 512*30
+    value: int(2.4e6)
   states:
     bus_sink: false
     bus_source: false
@@ -186,15 +153,24 @@ blocks:
     rotation: 0
     state: true
 - name: snr
-  id: variable
+  id: variable_qtgui_range
   parameters:
     comment: ''
-    value: '10'
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: Qt.Horizontal
+    rangeType: float
+    start: '.01'
+    step: '.01'
+    stop: '10'
+    value: '1'
+    widget: counter_slider
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1120, 40.0]
+    coordinate: [216, 228.0]
     rotation: 0
     state: true
 - name: theta
@@ -206,7 +182,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [808, 152.0]
+    coordinate: [528, 248.0]
     rotation: 0
     state: true
 - name: theta_deg
@@ -227,7 +203,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [80, 196.0]
+    coordinate: [360, 232.0]
     rotation: 0
     state: true
 - name: analog_noise_source_x_0
@@ -246,7 +222,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 672.0]
+    coordinate: [56, 648.0]
     rotation: 0
     state: true
 - name: analog_noise_source_x_0_0
@@ -265,7 +241,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 752.0]
+    coordinate: [56, 728.0]
     rotation: 0
     state: true
 - name: analog_noise_source_x_0_0_0
@@ -284,7 +260,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 592.0]
+    coordinate: [56, 568.0]
     rotation: 0
     state: true
 - name: analog_noise_source_x_0_0_0_0
@@ -303,7 +279,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 832.0]
+    coordinate: [56, 808.0]
     rotation: 0
     state: true
 - name: analog_noise_source_x_0_0_0_1
@@ -322,7 +298,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 368.0]
+    coordinate: [240, 416.0]
     rotation: 0
     state: disabled
 - name: analog_sig_source_x_0
@@ -344,7 +320,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [-64, 420.0]
+    coordinate: [32, 452.0]
     rotation: 0
     state: enabled
 - name: blocks_add_xx_0
@@ -362,7 +338,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 496.0]
+    coordinate: [528, 480.0]
     rotation: 0
     state: true
 - name: blocks_add_xx_0_0
@@ -380,7 +356,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 576.0]
+    coordinate: [544, 552.0]
     rotation: 0
     state: true
 - name: blocks_add_xx_0_0_0
@@ -398,7 +374,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [496, 688.0]
+    coordinate: [528, 672.0]
     rotation: 0
     state: true
 - name: blocks_add_xx_0_0_0_0
@@ -416,7 +392,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [496, 768.0]
+    coordinate: [528, 752.0]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0
@@ -425,8 +401,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    const: np.exp(-2j*np.pi*np.dot([np.cos(phi)*np.sin(theta), np.sin(phi)*np.sin(theta),
-      np.cos(theta)], [-.25, .25, 0]))
+    const: np.exp(-1j*np.pi*np.cos(theta))
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -435,7 +410,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [272, 572.0]
+    coordinate: [352, 556.0]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0_0
@@ -444,8 +419,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    const: np.exp(-2j*np.pi*np.dot([np.cos(phi)*np.sin(theta), np.sin(phi)*np.sin(theta),
-      np.cos(theta)], [.25, -.25, 0]))
+    const: np.exp(-1j*np.pi*np.cos(theta)*2)
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -454,7 +428,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [264, 684.0]
+    coordinate: [328, 660.0]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0_0_0
@@ -463,8 +437,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    const: np.exp(-2j*np.pi*np.dot([np.cos(phi)*np.sin(theta), np.sin(phi)*np.sin(theta),
-      np.cos(theta)], [.25, .25, 0]))
+    const: np.exp(-1j*np.pi*np.cos(theta)*3)
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -473,64 +446,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [256, 764.0]
+    coordinate: [304, 764.0]
     rotation: 0
-    state: true
-- name: blocks_multiply_const_vxx_0_1
-  id: blocks_multiply_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: np.exp(-2j*np.pi*np.dot([np.cos(phi)*np.sin(theta), np.sin(phi)*np.sin(theta),
-      np.cos(theta)], [-.25, -.25, 0]))
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [264, 476.0]
-    rotation: 0
-    state: true
-- name: blocks_throttle_0
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [80, 452.0]
-    rotation: 0
-    state: true
-- name: blocks_vector_to_stream_0
-  id: blocks_vector_to_stream
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_items: int(display_res**2*2)
-    type: byte
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1152, 720.0]
-    rotation: 180
     state: true
 - name: doa_autocorrelate_0
   id: doa_autocorrelate
@@ -548,30 +465,29 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [800, 480.0]
+    coordinate: [832, 464.0]
     rotation: 0
     state: true
-- name: doa_beamform_2d_0
-  id: doa_beamform_2d
+- name: doa_music_1d_0
+  id: doa_music_1d
   parameters:
     affinity: ''
     alias: ''
-    array_config: /home/henry/dox/Workspaces/Work/DroneSDR/direction_finding/gr-doa/python/testbench/square.conf
-    capon: '1'
+    array_config: /home/henry/dox/Workspaces/Work/DroneSDR/direction_finding/gr-doa/python/testbench/linear_4.conf
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
     num_antennas: '4'
-    phi_max: 2*np.pi
+    num_signals: '1'
+    phi_max: '3.1415'
     phi_min: '0'
-    resolution: display_res
-    theta_max: np.pi
-    theta_min: '0'
+    resolution: '128'
+    theta: '1.5708'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1064, 512.0]
+    coordinate: [1040, 468.0]
     rotation: 0
     state: true
 - name: import_0
@@ -600,24 +516,77 @@ blocks:
     coordinate: [696, 148.0]
     rotation: 0
     state: true
-- name: video_sdl_sink_0
-  id: video_sdl_sink
+- name: qtgui_vector_sink_f_0
+  id: qtgui_vector_sink_f
   parameters:
     affinity: ''
     alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
     comment: ''
-    display_height: display_res*2
-    display_width: display_res*2*2
-    fps: '0'
-    height: display_res
-    num_channels: '1'
-    type: byte
-    width: display_res*2
+    grid: 'False'
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    ref_level: '0'
+    showports: 'False'
+    update_time: '0.10'
+    vlen: display_res
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    x_axis_label: '"x-Axis"'
+    x_start: '0'
+    x_step: '1.0'
+    x_units: '""'
+    y_axis_label: '"y-Axis"'
+    y_units: '""'
+    ymax: '30'
+    ymin: '-10'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [928, 692.0]
+    coordinate: [1504, 628.0]
     rotation: 180
     state: true
 
@@ -630,7 +599,10 @@ connections:
 - [analog_noise_source_x_0_0_0_1, '0', blocks_multiply_const_vxx_0, '0']
 - [analog_noise_source_x_0_0_0_1, '0', blocks_multiply_const_vxx_0_0, '0']
 - [analog_noise_source_x_0_0_0_1, '0', blocks_multiply_const_vxx_0_0_0, '0']
-- [analog_sig_source_x_0, '0', blocks_throttle_0, '0']
+- [analog_sig_source_x_0, '0', blocks_add_xx_0, '0']
+- [analog_sig_source_x_0, '0', blocks_multiply_const_vxx_0, '0']
+- [analog_sig_source_x_0, '0', blocks_multiply_const_vxx_0_0, '0']
+- [analog_sig_source_x_0, '0', blocks_multiply_const_vxx_0_0_0, '0']
 - [blocks_add_xx_0, '0', doa_autocorrelate_0, '0']
 - [blocks_add_xx_0_0, '0', doa_autocorrelate_0, '1']
 - [blocks_add_xx_0_0_0, '0', doa_autocorrelate_0, '2']
@@ -638,14 +610,8 @@ connections:
 - [blocks_multiply_const_vxx_0, '0', blocks_add_xx_0_0, '0']
 - [blocks_multiply_const_vxx_0_0, '0', blocks_add_xx_0_0_0, '0']
 - [blocks_multiply_const_vxx_0_0_0, '0', blocks_add_xx_0_0_0_0, '0']
-- [blocks_multiply_const_vxx_0_1, '0', blocks_add_xx_0, '0']
-- [blocks_throttle_0, '0', blocks_multiply_const_vxx_0, '0']
-- [blocks_throttle_0, '0', blocks_multiply_const_vxx_0_0, '0']
-- [blocks_throttle_0, '0', blocks_multiply_const_vxx_0_0_0, '0']
-- [blocks_throttle_0, '0', blocks_multiply_const_vxx_0_1, '0']
-- [blocks_vector_to_stream_0, '0', video_sdl_sink_0, '0']
-- [doa_autocorrelate_0, '0', doa_beamform_2d_0, '0']
-- [doa_beamform_2d_0, '0', blocks_vector_to_stream_0, '0']
+- [doa_autocorrelate_0, '0', doa_music_1d_0, '0']
+- [doa_music_1d_0, '0', qtgui_vector_sink_f_0, '0']
 
 metadata:
   file_format: 1

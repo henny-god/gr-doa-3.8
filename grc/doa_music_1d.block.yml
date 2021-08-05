@@ -1,45 +1,63 @@
 id: doa_music_1d
 label: music_1d
-category: '[doa]'
+category: 'DoA'
 
 templates:
   imports: import doa
-  make: doa.music_1d(${num_antennas}, ${resolution}, ${array_config}, ${phi_min}, ${phi_max}, ${theta})
+  make: doa.music_1d(${num_antennas}, ${num_signals}, ${resolution}, ${array_config}, ${phi_min}, ${phi_max}, ${theta})
 
-#  Make one 'parameters' list entry for every parameter you want settable from the GUI.
-#     Keys include:
-#     * id (makes the value accessible as \$keyname, e.g. in the make entry)
-#     * label (label shown in the GUI)
-#     * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
 parameters:
-- id: ...
-  label: ...
-  dtype: ...
-- id: ...
-  label: ...
-  dtype: ...
+- id: num_antennas
+  label: Number of Array Antennas
+  dtype: int
+  default: 4
+- id: num_signals
+  label: Number of Target Signals to Estimate
+  dtype: int
+  default: 1
+- id: resolution
+  label: Angle Sweep Resolution
+  dtype: int
+  default: 128
+- id: array_config
+  label: Array Configuration File
+  dtype: file_open
+  default: '~/array.cfg'
+- id: phi_min
+  label: Minimum Phi of Sweep
+  dtype: float
+  default: 0
+- id: phi_max
+  label: Maxmimum Phi of Sweep
+  dtype: float
+  default: 3.1415
+- id: theta
+  label: Theta plane
+  dtype: float
+  default: 1.5708
 
-#  Make one 'inputs' list entry per input and one 'outputs' list entry per output.
-#  Keys include:
-#      * label (an identifier for the GUI)
-#      * domain (optional - stream or message. Default is stream)
-#      * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
-#      * vlen (optional - data stream vector length. Default is 1)
-#      * optional (optional - set to 1 for optional inputs. Default is 0)
 inputs:
-- label: ...
-  domain: ...
-  dtype: ...
-  vlen: ...
-  optional: ...
+- label: in
+  domain: stream
+  dtype: complex
+  vlen: ${num_antennas*num_antennas}
 
 outputs:
-- label: ...
-  domain: ...
-  dtype: ...
-  vlen: ...
-  optional: ...
+- label: out
+  domain: stream
+  dtype: float
+  vlen: ${resolution}
 
-#  'file_format' specifies the version of the GRC yml format used in the file
-#  and should usually not be changed.
+documentation: |-
+  "This block performs the MUSIC algorithm over a 1-dimensional slice of spherical space on an autocorrelation matrix for an arbitrary phased array. It returns a vector of floats corresponding with MUSIC's null-space strength at a given angle. The block sweeps over the phi angle (azimuth per physics convention for spherical coordinates), meaning you'll want to orient your array in the xy-plane if it is linear.
+  Args:
+    num_antennas: number of antennas in array
+    num_signals: number of target signals to estimate DoA
+    resolution: resolution of the 1d angle sweep-space
+    array_config: path to the array configuration file. See README in docs for how to make these.
+    phi_min: start phi of sweep-space
+    phi_max: end phi of sweep-space
+    theta: theta-plane of the sweep space. For example, if you leave this at pi, the 1d sweep will take lpace in the xy-plane.
+    "
+
 file_format: 1

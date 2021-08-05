@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2021 gr-doa Henry Pick.
+# Copyright 2021 Henry Pick.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,30 +22,26 @@
 
 import numpy as np
 import sys
-
 from gnuradio import gr
 
-class music_1d(gr.sync_block):
+class music_2d(gr.sync_block):
     """
-    docstring for block music_1d
+    docstring for block music_2d
     """
-    def __init__(self, num_antennas, num_signals, resolution, array_config, phi_min, phi_max, theta):
+    def __init__(self, num_antennas: int, num_signals: int, resolution: int, array_config: str, theta_min: float, theta_max: float, phi_min: float, phi_max: float):
         gr.sync_block.__init__(self,
-            name="music_1d",
+            name="music_2d",
             in_sig=[(np.csingle, num_antennas*num_antennas), ],
-            out_sig=[(np.single, resolution), ])
+            out_sig=[(np.byte, int(resolution**2*2)), ])
 
-        self.resolution = resolution
-        self.num_signals = num_signals
         self.num_antennas = num_antennas
-        self.phi_min = phi_min
-        self.phi_max = phi_max
-        self.theta = theta
+        self.num_signals = num_signals
+        self.resolution = resolution
 
-        self.amvs = np.ndarray((resolution, num_antennas), dtype=np.csingle)
+        self.amvs = np.ndarray((resolution, 2*resolution, num_antennas), dtype=np.csingle)
 
-        # parse config file and put positions into array
         self.array = np.ndarray((num_antennas, 3), dtype=np.single)
+
         try:
             file = open(array_config, 'r')
             file.close()
@@ -65,24 +61,25 @@ class music_1d(gr.sync_block):
             self.array[i][1] = float(lines[3*i+1])
             self.array[i][2] = float(lines[3*i+2])
 
-        # setup amv lookup table
-        # just for standardization, we set theta as our sweeping angle and hold phi constant
         for i in range(self.resolution):
-            phi = float(i) / resolution * (phi_max - phi_min) + phi_min
-            wave_vector = np.array([np.sin(self.theta)*np.cos(phi), np.sin(self.theta)*np.sin(phi), np.cos(self.theta)])
-            self.amvs[i] = np.exp(2j*np.pi*np.array(np.dot(self.array - self.array[0], wave_vector)))
+            theta = float(i) / resolution * (theta_max - theta_min) + theta_min
+            for j in range(self.resolution*2):
+                phi = float(j) / resolution / 2 * (phi_max - phi_min) + phi_min
+                wave_vector = np.array([np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta)])
+                self.amvs[i][j] = np.exp(2j*np.pi*np.array(np.dot(self.array - self.array[0], wave_vector)))
 
     def work(self, input_items, output_items):
         in0 = input_items[0]
         out = output_items[0]
 
         for item in range(len(output_items[0])):
-            Rxx = np.array(in0[item]).reshape(self.num_antennas, self.num_antennas)
+            Rxx = np.array(in0[item].reshape(self.num_antennas, self.num_antennas))
 
             [evals, evecs] = np.linalg.eigh(Rxx)
-            V = evecs[:,:-self.num_signals]
+            V = evecs[:, :-self.num_signals]
             V_sq = np.dot(V, np.conj(V.T))
-            out[item] = 10*np.log10(1/np.einsum('xy, xy->x', np.conj(self.amvs), np.einsum('xb, ab->ax', V_sq, self.amvs)).real)
-
+            output = 10*np.log10(1/np.einsum('xyz, xyz->xy', np.conj(self.amvs), np.einsum('az, xyz->xya', V_sq, self.amvs)).real).flatten()
+            output_min = np.min(output)
+            out[item] = (output - output_min)/(np.max(output) - output_min)* 255
         return len(output_items[0])
 

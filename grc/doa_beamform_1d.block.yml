@@ -32,7 +32,7 @@ parameters:
 - id: phi_max
   label: Maximum Phi of Sweep
   dtype: float
-  default: 180
+  default: 3.1415
 - id: theta
   label: Theta plane
   dtype: float

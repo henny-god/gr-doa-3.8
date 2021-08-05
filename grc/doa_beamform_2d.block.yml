@@ -32,7 +32,7 @@ parameters:
 - id: theta_max
   label: Maximum Theta of Sweep
   dtype: float
-  default: 180
+  default: 3.1415
 - id: phi_min
   label: Mimimum Phi of Sweep
   dtype: float
@@ -40,7 +40,7 @@ parameters:
 - id: phi_max
   label: Maximum phi of Sweep
   dtype: float
-  default: 360
+  default: 6.2832
   
 inputs:
 - label: in

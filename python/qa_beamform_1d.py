@@ -36,15 +36,16 @@ class qa_beamform_1d(gr_unittest.TestCase):
 
     def test_001_t(self):
         resolution = 512
-        theta = np.deg2rad(130)
+        phi = np.deg2rad(130)
         num_samples = 512
         capon = 1
+        snr = 10
         array_config = '../../python/testbench/linear_6.conf'
 
 
         antennas = testbench.read_array_config(6, array_config)
 
-        [testbench_powers, Rxx] = testbench.beamform_1d_testbench(antennas, num_samples, resolution, theta, 10, capon)
+        [testbench_powers, Rxx] = testbench.beamform_1d_testbench(antennas, num_samples, resolution, phi, snr, capon)
 
         self.beamform_1d = beamform_1d(len(antennas), resolution, array_config, capon, 0, np.pi, np.pi/2)
         self.vec_source = blocks.vector_source_c(data=Rxx.flatten(), repeat=False, vlen=len(antennas)*len(antennas))

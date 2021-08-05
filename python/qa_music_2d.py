@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2021 gr-doa author.
+# Copyright 2021 Henry Pick.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,14 +21,13 @@
 
 from gnuradio import gr, gr_unittest
 from gnuradio import blocks
-from music_1d import music_1d
+from music_2d import music_2d
 
 import testbench
-
 import numpy as np
 import matplotlib.pyplot as plt
 
-class qa_music_1d(gr_unittest.TestCase):
+class qa_music_2d(gr_unittest.TestCase):
 
     def setUp(self):
         self.tb = gr.top_block()
@@ -37,31 +36,29 @@ class qa_music_1d(gr_unittest.TestCase):
         self.tb = None
 
     def test_001_t(self):
-
-        resolution = 512
-        phi = np.deg2rad(120)
+        # set up fg
+        resolution = 128
+        angles = np.deg2rad((118, 270))
         num_samples = 512
         snr = 10
-        array_config = '../../python/testbench/linear_6.conf'
+        array_config = '../../python/testbench/square.conf'
 
-        antennas = testbench.read_array_config(6, array_config)
+        antennas = testbench.read_array_config(4, array_config)
 
-        [testbench_powers, Rxx] = testbench.music_1d_testbench(antennas, num_samples, resolution, phi, snr)
+        [testbench_music, Rxx] = testbench.music_2d_testbench(antennas, num_samples, resolution, angles, snr)
 
-        self.music_1d = music_1d(len(antennas), 1, resolution, array_config, 0, np.pi, np.pi/2)
-        self.vec_source = blocks.vector_source_c(data=Rxx.flatten(), repeat=False, vlen=len(antennas)*len(antennas))
-        self.vec_sink = blocks.vector_sink_f(vlen=resolution)
+        self.music_2d = music_2d(len(antennas), 1, resolution, array_config, 0, np.pi, 0, 2*np.pi)
+        self.vec_source = blocks.vector_source_c(data=Rxx.flatten(), repeat=False, vlen=int(len(antennas)**2))
+        self.vec_sink = blocks.vector_sink_b(vlen=int(resolution**2*2))
 
-        self.tb.connect((self.vec_source, 0), (self.music_1d, 0))
-        self.tb.connect((self.music_1d, 0), (self.vec_sink, 0))
+        self.tb.connect((self.vec_source, 0), (self.music_2d, 0))
+        self.tb.connect((self.music_2d, 0), (self.vec_sink))
 
-        # set up fg
+        # run
         self.tb.run()
-        observed_powers = self.vec_sink.data()
+        observed_music = self.vec_sink.data()
 
-        self.assertTrue(np.max(np.abs(observed_powers - testbench_powers)) < .01)
-        # check data
-
+        self.assertTrue(np.max(np.abs(observed_music - testbench_music.flatten())) < 1.1)
 
 if __name__ == '__main__':
-    gr_unittest.run(qa_music_1d)
+    gr_unittest.run(qa_music_2d)

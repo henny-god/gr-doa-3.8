@@ -1,0 +1,75 @@
+id: doa_music_2d
+label: music_2d
+category: 'DoA'
+
+templates:
+  imports: import doa
+  make: doa.music_2d(${num_antennas}, ${num_signals}, ${resolution}, ${array_config}, ${theta_min}, ${theta_max}, ${phi_min}, ${phi_max})
+
+parameters:
+- id: num_antennas
+  label: Number of Array Antennas
+  dtype: int
+  default: 4
+- id: num_signals
+  label: Number of Target Signals to Estimate
+  dtype: int
+  default: 1
+- id: resolution
+  label: Angle Sweep Resolution
+  dtype: int
+- id: array_config
+  label: Array Config File
+  dtype: file_open
+  default: '~/array.cfg'
+- id: theta_min
+  label: Minimum Theta of Sweep
+  dtype: float
+  default: 0
+- id: theta_max
+  label: Maximum Theta of Sweep
+  dtype: float
+  default: 3.1415
+- id: phi_min
+  label: Minimum Phi of Sweep
+  dtype: float
+  default: 0
+- id: phi_max
+  label: Maxmimum Phi of Sweep
+  dtype: float
+  default: 6.2832
+
+asserts:
+  - ${num_antennas > 0}
+  - ${num_antennas > num_signals}
+  - ${resolution > 0}
+  - ${theta_min < theta_max}
+  - ${phi_min < phi_max}
+
+
+inputs:
+- label: in
+  domain: stream
+  dtype: complex
+  vlen: ${num_antennas * num_antennas}
+
+outputs:
+- label: out
+  domain: stream
+  dtype: byte
+  vlen: ${resolution * resolution * 2}
+
+documentation: |-
+  "This block performs the MUSIC algorithm over 2-dimensional spherical space on an autocorrelation matrix for an arbitrary phased array, returning a vector of floats corresponding with MUSIC's null-space strength at a given angle. The block sweeps over the phi angle (azimuth per physics convention for spherical coordinates), meaning you'll want to orient your array in the xy-plane if it is linear.
+  Args:
+    num_antennas: number of antennas in array
+    num_signals: number of target signals to estimate DoA
+    resolution: resolution of the 1d angle sweep-space
+    array_config: path to the array configuration file. See README in docs for how to make these.
+    theta_min: starting theta of sweep-space
+    theta_max: end theta of sweep-space
+    phi_min: start phi of sweep-space
+    phi_max: end phi of sweep-space
+    "
+
+file_format: 1

@@ -185,8 +185,40 @@ def beamform_2d_testbench(antennas, num_samples: int, resolution: int, angles, a
     powers_min = np.min(powers)
     powers = (powers  - powers_min) /(np.max(powers) - powers_min)*255
     return [powers, Rxx]
-                
-        
+
+def music_1d_testbench(antennas, num_samples: int, resolution: int, phi: float, snr: float):
+    x = channel_model(antennas, [[np.pi/2, phi]], [1], num_samples, snr)
+    Rxx = autocorrelate(x)
+    amvs = np.ndarray((resolution, len(antennas)), dtype=complex)
+    powers = np.ndarray((resolution), dtype=float)
+
+    for i in range(resolution):
+        phi_step = i * np.pi/resolution
+        amvs[i] = amv(antennas, np.pi/2, phi_step)
+
+    [evals, evec] = np.linalg.eigh(Rxx)
+    V = evec[:,:-1]
+    V_sq = np.dot(V, np.conj(V.T))
+    powers = 10*np.log10(1/np.einsum('xy, xy->x', np.conj(amvs), np.einsum('xb, ab->ax', V_sq, amvs)).real)
+    return [powers, Rxx]
+
+def music_2d_testbench(antennas, num_samples: int, resolution: int, angles, snr):
+    x = channel_model(antennas, [angles], [1], num_samples, snr)
+    Rxx = autocorrelate(x)
+    amvs = np.ndarray((resolution, 2*resolution, len(antennas)), dtype=complex)
+    for i in range(resolution):
+        theta_step = i * np.pi/resolution
+        for j in range(resolution*2):
+            phi_step = j * np.pi/resolution
+            amvs[i][j] = amv(antennas, theta_step, phi_step)
+
+    [evals, evecs] = np.linalg.eigh(Rxx)
+    V = evecs[:, :-1]
+    V_sq = np.dot(V, np.conj(V.T))
+    powers = 10*np.log10(1/np.einsum('xyz, xyz->xy', np.conj(amvs), np.einsum('az, xyz->xya', V_sq, amvs)).real)
+    powers_min = np.min(powers)
+    powers = (powers - powers_min)/(np.max(powers) - powers_min)*255
+    return [powers, Rxx]
 
 def music_input_gen(len_ss: int, overlap_size: int, num_ss: int, num_antennas: int, FB: bool, arr_type: str, norm_spacing: float, PERTURB: bool, expected_aoa: float):
     nonoverlap_size = len_ss - overlap_size
