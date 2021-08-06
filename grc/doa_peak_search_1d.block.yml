@@ -1,0 +1,54 @@
+id: doa_peak_search_1d
+label: peak_search_1d
+category: 'DoA'
+
+templates:
+  imports: import doa
+  make: doa.peak_search_1d(${num_peaks}, ${vector_len}, ${phi_min}, ${phi_max})
+
+parameters:
+- id: num_peaks
+  label: Number of largest peaks to identify
+  dtype: int
+  default: 1
+- id: vector_len
+  label: Length of the vector to process
+  dtype: int
+- id: phi_min
+  label: Minimum Phi of Vector
+  dtype: float
+  default: 0
+- id: phi_max
+  label: Maximum Phi of Vector
+  dtype: float
+  default: 3.1415
+
+inputs:
+- label: in
+  domain: stream
+  dtype: float
+  vlen: ${ vector_len }
+  optional: False
+
+outputs:
+- label: Peak angles
+  domain: stream
+  dtype: float
+  vlen: ${ num_peaks}
+  optional: True
+- label: Peak magnitudes
+  domain: stream
+  dtype: float
+  vlen: ${ num_peaks}
+  optional: True
+
+documentation: |-
+  "This block searches a vector of relatively smooth values for peaks and outputs the peak indices as angles sorted by peak magnitude.
+  Args:
+    num_peaks: the number of largest peak indices/magnitudes to return
+    vector_len: the length of the input vector
+    phi_min: minimum phi angle, represented by input_vector[0]
+    phi_max: maximum phi angle, represented at input_vector[vector_len]
+  "
+
+file_format: 1

@@ -20,12 +20,15 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <ios>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include <gnuradio/io_signature.h>
 #include "calibrate_lin_array_impl.h"
+#include <fstream>
+#include <math.h>
 
 #define COPY_MEM false  // Do not copy matrices into separate memory
 #define FIX_SIZE true   // Keep dimensions of matrices constant
@@ -34,41 +37,59 @@ namespace gr {
   namespace doa {
 
     calibrate_lin_array::sptr
-    calibrate_lin_array::make(float norm_spacing, int num_ant_ele, float pilot_angle)
+    calibrate_lin_array::make(int num_antennas, char *array_config, float pilot_theta, float pilot_phi)
     {
       return gnuradio::get_initial_sptr
-        (new calibrate_lin_array_impl(norm_spacing, num_ant_ele, pilot_angle));
+        (new calibrate_lin_array_impl(num_antennas, array_config, pilot_theta, pilot_phi));
     }
 
     /*
      * The private constructor
      */
-    calibrate_lin_array_impl::calibrate_lin_array_impl(float norm_spacing, int num_ant_ele, float pilot_angle)
+    calibrate_lin_array_impl::calibrate_lin_array_impl(int num_antennas, char *array_config, float pilot_theta, float pilot_phi)
       : gr::sync_block("calibrate_lin_array",
-              gr::io_signature::make(1, 1, num_ant_ele*num_ant_ele*sizeof(gr_complex)),
-              gr::io_signature::make(1, 1, num_ant_ele*sizeof(gr_complex))),
-	      d_norm_spacing(norm_spacing),
-	      d_num_ant_ele(num_ant_ele),	      
-	      d_pilot_angle(pilot_angle)
+              gr::io_signature::make(1, 1, num_antennas*num_antennas*sizeof(gr_complex)),
+              gr::io_signature::make(1, 1, num_antennas*sizeof(gr_complex))),
+	      d_num_antennas(num_antennas),	      
+	d_pilot_theta(pilot_theta),
+	d_pilot_phi(pilot_phi)
     {
 
 	// form antenna array locations centered around zero and normalize
-        d_array_loc = fcolvec(d_num_ant_ele, fill::zeros);
-        for (int nn = 0; nn < d_num_ant_ele; nn++)
-        {
-            d_array_loc(nn) = d_norm_spacing*0.5*(d_num_ant_ele-1-2*nn);
-        }
-	
-        // form array response matrix
-        cx_fcolvec v_temp(d_num_ant_ele, fill::zeros);
-        d_diagmat_v_vec = cx_fmat(d_num_ant_ele, d_num_ant_ele);
-        d_diagmat_v_vec_conj = cx_fmat(d_num_ant_ele, d_num_ant_ele);
+      d_antenna_coords= fmat(d_num_antennas, 3, fill::zeros);
+      std::ifstream file(array_config);
 
-        // generate array manifold vector for pilot angle
-        amv(v_temp, d_array_loc, datum::pi*d_pilot_angle/180.0);
-        d_diagmat_v_vec = diagmat(v_temp);
-        // save transposed copy
-        d_diagmat_v_vec_conj = diagmat(conj(v_temp));
+      if(!file.good()) {
+	std::cerr << "Error, could not open array configuration file " << array_config << std::endl;
+	exit(1);
+      }
+
+      float in;
+      int i = 0;
+      while(file >> in) {
+	if (i > d_num_antennas * 3) {
+	  std::cerr << "Error, more inputs in config file than specified in num_antennas" << std:: endl;
+	  exit(1);
+	}
+	d_antenna_coords(i / 3, i % 3) = in;
+	i++;
+      }
+
+      if (i < d_num_antennas * 3) {
+	std::cerr << "Error, fewer inputs in config file than specified in num_antennas" << std::endl;
+	exit(1);
+      }
+	
+      // form array response matrix
+      cx_fcolvec v_temp(d_num_antennas, fill::zeros);
+      d_diagmat_v_vec = cx_fmat(d_num_antennas, d_num_antennas);
+      d_diagmat_v_vec_conj = cx_fmat(d_num_antennas, d_num_antennas);
+
+      // generate array manifold vector for pilot angle
+      amv(v_temp, d_pilot_theta, d_pilot_phi);
+      d_diagmat_v_vec = diagmat(v_temp);
+      // save transposed copy
+      d_diagmat_v_vec_conj = diagmat(conj(v_temp));
 
     }
 
@@ -80,12 +101,15 @@ namespace gr {
     }
 
     // array manifold vector generating function
-    void calibrate_lin_array_impl::amv(cx_fcolvec& v_ii, fcolvec& array_loc, float theta)
+    void calibrate_lin_array_impl::amv(cx_fcolvec& amv, float theta, float phi)
     {
         // sqrt(-1)
         const gr_complex i = gr_complex(0.0, 1.0);
-	// array manifold vector
-    	v_ii = exp(i*(-1.0*2*datum::pi*cos(theta)*array_loc));
+	// create wave vector
+	cx_fcolvec wave_vector({sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)});
+
+	// array manifold vector by dotting d_antenna_coords with wave_vector
+    	amv = exp(i*(2*datum::pi*(d_antenna_coords*wave_vector)));
     }
 
     /*
@@ -111,22 +135,21 @@ namespace gr {
       for (int item = 0; item < noutput_items; item++)
       {
           // make input pointer into matrix pointer
-          cx_fmat in_matrix(in+item*d_num_ant_ele*d_num_ant_ele, d_num_ant_ele, d_num_ant_ele);
-          cx_fvec gain_phase_est_vec(out+item*d_num_ant_ele, d_num_ant_ele, COPY_MEM, FIX_SIZE);          
+          cx_fmat in_matrix(in+item*d_num_antennas*d_num_antennas, d_num_antennas, d_num_antennas);
+          cx_fvec gain_phase_est_vec(out+item*d_num_antennas, d_num_antennas, COPY_MEM, FIX_SIZE);          
 
           // determine EVD of the auto-correlation matrix
           eig_sym(eig_val, eig_vec, in_matrix);
 
           // signal subspace column vector corresponding to one pilot source and its square matrix
-          cx_fmat U_S = eig_vec.col(d_num_ant_ele-1);
+          cx_fmat U_S = eig_vec.col(d_num_antennas-1);
           cx_fmat U_S_sq = U_S*trans(U_S);
 
 	  // array gain and phase vector is the eigenvector of W that corresponds to eigenvalue of unity
           W = d_diagmat_v_vec_conj*U_S_sq*d_diagmat_v_vec;
           eig_sym(W_eig_val, W_eig_vec, W);	  
 
-	  gain_phase_est_vec = W_eig_vec.col(d_num_ant_ele-1);
-	  
+	  gain_phase_est_vec = W_eig_vec.col(d_num_antennas-1);
       }
 
       // Tell runtime system how many output items we produced.

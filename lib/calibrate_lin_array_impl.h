@@ -33,19 +33,19 @@ namespace gr {
     class calibrate_lin_array_impl : public calibrate_lin_array
     {
      private:
-      float d_norm_spacing;
-      int d_num_ant_ele;
-      float d_pilot_angle;
-      fcolvec d_array_loc;
+      int d_num_antennas;
+      float d_pilot_theta;
+      float d_pilot_phi;
+      fmat d_antenna_coords;
       cx_fmat d_diagmat_v_vec;
       cx_fmat d_diagmat_v_vec_conj;
 
      public:
-      calibrate_lin_array_impl(float norm_spacing, int num_ant_ele, float pilot_angle);
+      calibrate_lin_array_impl(int num_antennas, char *array_config, float pilot_theta, float pilot_phi);
       ~calibrate_lin_array_impl();
 
       // Where all the action really happens
-      void amv(cx_fcolvec& v_ii, fcolvec& array_loc, float theta);
+      void amv(cx_fcolvec& amv, float theta, float phi);
 
       int work(int noutput_items,
          gr_vector_const_void_star &input_items,

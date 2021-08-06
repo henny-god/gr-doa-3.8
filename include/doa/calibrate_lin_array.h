@@ -51,7 +51,7 @@ namespace gr {
        * \param num_ant_ele     Number of antenna elements
        * \param pilot_angle     Known angle of a pilot transmitter used for calibration
        */
-      static sptr make(float norm_spacing, int num_ant_ele, float pilot_angle);
+      static sptr make(int num_antennas, char *array_config, float pilot_theta, float pilot_phi);
     };
 
   } // namespace doa

@@ -59,6 +59,7 @@ class qa_beamform_1d(gr_unittest.TestCase):
         self.tb.run()
         # check data
 
+
         observed_powers = self.vec_sink.data()
         self.assertTrue(np.max(np.abs(observed_powers - testbench_powers)) < 1e-4)
 

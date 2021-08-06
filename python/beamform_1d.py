@@ -70,7 +70,7 @@ class beamform_1d(gr.sync_block):
         for i in range(self.resolution):
             phi = float(i) / resolution * (phi_max - phi_min) + phi_min
             wave_vector = np.array([math.sin(self.theta)*math.cos(phi), math.sin(self.theta)*math.sin(phi), math.cos(self.theta)])
-            self.amvs[i] = np.exp(2j*math.pi*np.array(np.dot(self.array - self.array[0], wave_vector)))
+            self.amvs[i] = np.exp(-2j*math.pi*np.array(np.dot(self.array, wave_vector)))
 
         # if not capon beamforming, we normalize the weight vectors by the number of antennas
         if not self.capon:

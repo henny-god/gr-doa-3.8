@@ -66,7 +66,7 @@ class music_2d(gr.sync_block):
             for j in range(self.resolution*2):
                 phi = float(j) / resolution / 2 * (phi_max - phi_min) + phi_min
                 wave_vector = np.array([np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta)])
-                self.amvs[i][j] = np.exp(2j*np.pi*np.array(np.dot(self.array - self.array[0], wave_vector)))
+                self.amvs[i][j] = np.exp(-2j*np.pi*np.array(np.dot(self.array - self.array[0], wave_vector)))
 
     def work(self, input_items, output_items):
         in0 = input_items[0]

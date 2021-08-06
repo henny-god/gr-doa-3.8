@@ -28,5 +28,5 @@ install(FILES
     calibrate_lin_array.h
     find_local_max.h
     MUSIC_arb_array.h
-    calibrate_arb_array.h DESTINATION include/doa
+    DESTINATION include/doa
 )

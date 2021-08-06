@@ -25,180 +25,54 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import doa_swig as doa
 import itertools
-import oct2py
-import numpy
+import numpy as np
+import testbench
 import os
 
 class qa_calibrate_lin_array (gr_unittest.TestCase):
 
 	def setUp (self):
-		self.tb = gr.top_block ()
+                self.tb = gr.top_block ()
 
 	def tearDown (self):
 		self.tb = None
 
 	def test_001_t (self):	       
-		# normalized_spacing
-		norm_spacing = 0.3
-		# pilot angle
-		pilot_doa = 30.0
-		# number of antenna array elements
-		num_ant_ele = 4
-		# length of each snapshot
-		len_ss = 2048
-		# overlap size of each snapshot
-		overlap_size = 512
-		# apply Forward-Backward Averaging?
-		FB = False
-		# simulate perturbation?
-		PERTURB = True
+                config_file = '../../python/testbench/square.conf'
+                pilot_angles = np.deg2rad([[90, 115]])
+                pilot_mags = [1]
+                print(pilot_angles)
+                print(pilot_mags)
+                resolution = 128
+                num_samps = int(2**13)
+                snr = 10
 
-		# Generate auto-correlation vector from octave
-		oc = oct2py.Oct2Py()
-		oc.addpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'examples'))
-		S_x, S_x_uncalibrated, ant_pert_vec = oc.doa_testbench_create('music_test_input_gen', len_ss, overlap_size, num_ant_ele, FB, 'linear', num_ant_ele, norm_spacing, PERTURB, pilot_doa)
-		S_x_uncalibrated = S_x_uncalibrated.flatten().tolist()
-		ant_pert_vec = list(itertools.chain.from_iterable(ant_pert_vec))
 
-		##################################################
-		# Blocks
-		##################################################
-		self.vec_source = blocks.vector_source_c(S_x_uncalibrated, False, num_ant_ele*num_ant_ele)
-		self.doa_calibrate_lin_array_0 = doa.calibrate_lin_array(norm_spacing, num_ant_ele, pilot_doa)
-		self.vec_sink = blocks.vector_sink_c(num_ant_ele)        
+                antennas = testbench.read_array_config(4, config_file)
 
-		##################################################
-		# Connections
-		##################################################
-		self.tb.connect((self.vec_source, 0), (self.doa_calibrate_lin_array_0, 0))
-		self.tb.connect((self.doa_calibrate_lin_array_0, 0), (self.vec_sink, 0))  
 
-		# set up fg
-		self.tb.run ()
+                x = testbench.channel_model(antennas, pilot_angles, pilot_mags, num_samps, snr)
+                gamma = np.diag(np.random.uniform(0, 1, len(antennas))*np.exp(1j*np.random.uniform(-np.pi, np.pi, len(antennas))))
+                x_p = np.dot(gamma, x) # x perturbed
 
-		# get data from sink
-		ant_pert_vec_est = self.vec_sink.data()
-		ant_pert_vec_est = numpy.asarray(ant_pert_vec_est, 'F')
-		# num of snapshots
-		n_ss = len(ant_pert_vec_est)/num_ant_ele
+                R_xx_p = testbench.autocorrelate(x_p)
 
-		# check data
-		ant_ele_range = range(0, num_ant_ele)
-		expected_result = numpy.zeros(num_ant_ele-1)+1j*numpy.zeros(num_ant_ele-1)
-		for ii in range(0, n_ss):
-			# calibrated_antenna_resp will contain elements that are all equal
-			calibrated_antenna_resp = numpy.divide(ant_pert_vec, ant_pert_vec_est[ii*num_ant_ele+numpy.array(ant_ele_range)])
-			self.assertComplexTuplesAlmostEqual(expected_result, numpy.diff(calibrated_antenna_resp), 1)
+                self.vec_source = blocks.vector_source_c(data=R_xx_p.flatten(), repeat=False, vlen=int(len(antennas)**2))
+                self.vec_sink = blocks.vector_sink_c(vlen=len(antennas))
+                self.estimate_offset = doa.calibrate_lin_array(len(antennas), config_file, pilot_angles[0, 0], pilot_angles[0,1])
 
-	def test_002_t (self):	       
-		# normalized_spacing
-		norm_spacing = 0.5
-		# pilot angle
-		pilot_doa = 60.0
-		# number of antenna array elements
-		num_ant_ele = 8
-		# num of snapshots
-		n_ss = 1000
-		# length of each snapshot
-		len_ss = 1024
-		# overlap size of each snapshot
-		overlap_size = 128
-		# apply Forward-Backward Averaging?
-		FB = True
-		# simulate perturbation?
-		PERTURB = True
+                self.tb.connect((self.vec_source, 0), (self.estimate_offset, 0))
+                self.tb.connect((self.estimate_offset, 0), (self.vec_sink, 0))
 
-		# Generate auto-correlation vector from octave
-		oc = oct2py.Oct2Py()
-		oc.addpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'examples'))
-		S_x, S_x_uncalibrated, ant_pert_vec = oc.doa_testbench_create('music_test_input_gen', len_ss, overlap_size, num_ant_ele, FB, 'linear', num_ant_ele, norm_spacing, PERTURB, pilot_doa)
-		S_x_uncalibrated = S_x_uncalibrated.flatten().tolist()
-		ant_pert_vec = list(itertools.chain.from_iterable(ant_pert_vec))
 
-		##################################################
-		# Blocks
-		##################################################
-		self.vec_source = blocks.vector_source_c(S_x_uncalibrated, False, num_ant_ele*num_ant_ele)
-		self.doa_calibrate_lin_array_0 = doa.calibrate_lin_array(norm_spacing, num_ant_ele, pilot_doa)
-		self.vec_sink = blocks.vector_sink_c(num_ant_ele)        
+                self.tb.run()
 
-		##################################################
-		# Connections
-		##################################################
-		self.tb.connect((self.vec_source, 0), (self.doa_calibrate_lin_array_0, 0))
-		self.tb.connect((self.doa_calibrate_lin_array_0, 0), (self.vec_sink, 0))  
+                observed_gamma = self.vec_sink.data()
 
-		# set up fg
-		self.tb.run ()
+                print(gamma)
+                print(observed_gamma)
 
-		# get data from sink
-		ant_pert_vec_est = self.vec_sink.data()
-		ant_pert_vec_est = numpy.asarray(ant_pert_vec_est, 'F')
-		# num of snapshots
-		n_ss = len(ant_pert_vec_est)/num_ant_ele
-
-		# check data
-		ant_ele_range = range(0, num_ant_ele)
-		expected_result = numpy.zeros(num_ant_ele-1)+1j*numpy.zeros(num_ant_ele-1)
-		for ii in range(0, n_ss):
-			# calibrated_antenna_resp will contain elements that are all equal
-			calibrated_antenna_resp = numpy.divide(ant_pert_vec, ant_pert_vec_est[ii*num_ant_ele+numpy.array(ant_ele_range)])
-			self.assertComplexTuplesAlmostEqual(expected_result, numpy.diff(calibrated_antenna_resp), 1)
-
-	def test_003_t (self):	       
-		# normalized_spacing
-		norm_spacing = 0.2
-		# pilot angle
-		pilot_doa = 25.0
-		# number of antenna array elements
-		num_ant_ele = 4
-		# num of snapshots
-		n_ss = 800
-		# length of each snapshot
-		len_ss = 256
-		# overlap size of each snapshot
-		overlap_size = 64
-		# apply Forward-Backward Averaging?
-		FB = False
-		# simulate perturbation?
-		PERTURB = True
-
-		# Generate auto-correlation vector from octave
-		oc = oct2py.Oct2Py()
-		oc.addpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'examples'))
-		S_x, S_x_uncalibrated, ant_pert_vec = oc.doa_testbench_create('music_test_input_gen', len_ss, overlap_size, num_ant_ele, FB, 'linear', num_ant_ele, norm_spacing, PERTURB, pilot_doa)
-		S_x_uncalibrated = S_x_uncalibrated.flatten().tolist()
-		ant_pert_vec = list(itertools.chain.from_iterable(ant_pert_vec))
-
-		##################################################
-		# Blocks
-		##################################################
-		self.vec_source = blocks.vector_source_c(S_x_uncalibrated, False, num_ant_ele*num_ant_ele)
-		self.doa_calibrate_lin_array_0 = doa.calibrate_lin_array(norm_spacing, num_ant_ele, pilot_doa)
-		self.vec_sink = blocks.vector_sink_c(num_ant_ele)        
-
-		##################################################
-		# Connections
-		##################################################
-		self.tb.connect((self.vec_source, 0), (self.doa_calibrate_lin_array_0, 0))
-		self.tb.connect((self.doa_calibrate_lin_array_0, 0), (self.vec_sink, 0))  
-
-		# set up fg
-		self.tb.run ()
-
-		# get data from sink
-		ant_pert_vec_est = self.vec_sink.data()
-		ant_pert_vec_est = numpy.asarray(ant_pert_vec_est, 'F')
-		# num of snapshots
-		n_ss = len(ant_pert_vec_est)/num_ant_ele
-
-		# check data
-		ant_ele_range = range(0, num_ant_ele)
-		expected_result = numpy.zeros(num_ant_ele-1)+1j*numpy.zeros(num_ant_ele-1)
-		for ii in range(0, n_ss):
-			# calibrated_antenna_resp will contain elements that are all equal
-			calibrated_antenna_resp = numpy.divide(ant_pert_vec, ant_pert_vec_est[ii*num_ant_ele+numpy.array(ant_ele_range)])
-			self.assertComplexTuplesAlmostEqual(expected_result, numpy.diff(calibrated_antenna_resp), 1)
+                return
  
 if __name__ == '__main__':
     gr_unittest.run(qa_calibrate_lin_array, "qa_calibrate_lin_array.xml")

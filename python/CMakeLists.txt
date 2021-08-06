@@ -58,7 +58,6 @@ GR_ADD_TEST(qa_calibrate_lin_array ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_D
 GR_ADD_TEST(qa_find_local_max ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_find_local_max.py)
 GR_ADD_TEST(qa_MUSIC_arb_array ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_MUSIC_arb_array.py)
 GR_ADD_TEST(qa_beamform ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_beamform.py)
-GR_ADD_TEST(qa_calibrate_arb_array ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_calibrate_arb_array.py)
 GR_ADD_TEST(qa_beamform_1d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_beamform_1d.py)
 GR_ADD_TEST(qa_beamform_2d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_beamform_2d.py)
 GR_ADD_TEST(qa_music_1d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_music_1d.py)

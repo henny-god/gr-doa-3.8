@@ -29,7 +29,6 @@ install(FILES
     doa_phase_correct.block.yml
     doa_phase_offset_est.block.yml
     doa_MUSIC_arb_array.block.yml
-    doa_calibrate_arb_array.block.yml
     doa_beamform_1d.block.yml
     doa_beamform_2d.block.yml
     doa_music_1d.block.yml

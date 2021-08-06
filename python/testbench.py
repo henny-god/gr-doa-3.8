@@ -140,8 +140,8 @@ def amv(antennas, theta, phi):
     # the phase distance between each element in the array is just the dot product
     # between the distance 
     for i in range(l):
-        ret[i] = np.dot(n, antennas[i]-antennas[0]) # signed negative by typical array config
-    return np.exp(2j*(math.pi*ret))    
+        ret[i] = np.dot(n, antennas[i]) # signed negative by typical array config
+    return np.exp(-2j*(math.pi*ret))    
 
 
 def beamform_1d_testbench(antennas, num_samples: int, resolution: int, phi: float, snr: float, capon: int):
