@@ -24,21 +24,18 @@ import numpy as np
 import sys
 from gnuradio import gr
 
-class music_2d(gr.sync_block):
+class array_gain_estimation(gr.sync_block):
     """
-    docstring for block music_2d
+    docstring for block array_gain_estimation
     """
-    def __init__(self, num_antennas: int, num_signals: int, resolution: int, array_config: str, theta_min: float, theta_max: float, phi_min: float, phi_max: float):
+    def __init__(self, num_antennas, array_config, pilot_theta, pilot_phi):
         gr.sync_block.__init__(self,
-            name="music_2d",
+            name="array_gain_estimation",
             in_sig=[(np.csingle, num_antennas*num_antennas), ],
-            out_sig=[(np.byte, int(resolution**2*2)), ])
-
+            out_sig=[(np.csingle, num_antennas), ])
         self.num_antennas = num_antennas
-        self.num_signals = num_signals
-        self.resolution = resolution
-
-        self.amvs = np.ndarray((resolution, 2*resolution, num_antennas), dtype=np.csingle)
+        self.pilot_phi = pilot_phi
+        self.pilot_theta = pilot_theta
 
         self.array = np.ndarray((num_antennas, 3), dtype=np.single)
 
@@ -61,25 +58,30 @@ class music_2d(gr.sync_block):
             self.array[i][1] = float(lines[3*i+1])
             self.array[i][2] = float(lines[3*i+2])
 
-        for i in range(self.resolution):
-            theta = float(i) / resolution * (theta_max - theta_min) + theta_min
-            for j in range(self.resolution*2):
-                phi = float(j) / resolution / 2 * (phi_max - phi_min) + phi_min
-                wave_vector = np.array([np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta)])
-                self.amvs[i][j] = np.exp(-2j*np.pi*np.array(np.dot(self.array, wave_vector)))
+        wave_vector = np.array([np.sin(pilot_theta)*np.cos(pilot_phi), np.sin(pilot_theta)*np.sin(pilot_phi), np.cos(pilot_theta)])
+        # a diagonal matrix whose diagonals are the amv for this array
+        self.D = np.diag(np.exp(-2j*np.pi*np.dot(self.array, wave_vector)))
 
     def work(self, input_items, output_items):
         in0 = input_items[0]
         out = output_items[0]
 
-        for item in range(len(output_items[0])):
-            Rxx = np.array(in0[item].reshape(self.num_antennas, self.num_antennas))
+        for item in range(len(in0)):
+            Rxx = np.ndarray(in0[item], (self.num_antennas, self.num_antennas))
 
-            [evals, evecs] = np.linalg.eigh(Rxx)
-            V = evecs[:, :-self.num_signals]
-            V_sq = np.dot(V, np.conj(V.T))
-            output = 10*np.log10(1/np.einsum('xyz, xyz->xy', np.conj(self.amvs), np.einsum('az, xyz->xya', V_sq, self.amvs)).real).flatten()
-            output_min = np.min(output)
-            out[item] = (output - output_min)/(np.max(output) - output_min)* 255
+            [evals_Rxx, evecs_Rxx] = np.linalg.eigh(Rxx)
+            evecs_Rxx = evecs_Rxx[:,np.argsort(evals_Rxx)]
+
+            E = evecs_Rxx[:, self.num_antennas - 1]
+
+            E_sq = np.outer(E, np.conj(E))
+
+            W = np.dot(np.conj(self.D.T), np.dot(E_sq, self.D))
+
+            [evals_W, evecs_W] = np.linalg.eigh(W)
+            evecs_W = evecs_W[:,np.argsort(evals_W)]
+
+            out[item] = evecs_W[:,self.num_antennas-1]
+
         return len(output_items[0])
 

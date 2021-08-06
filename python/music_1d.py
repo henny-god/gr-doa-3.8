@@ -66,7 +66,7 @@ class music_1d(gr.sync_block):
             self.array[i][2] = float(lines[3*i+2])
 
         # setup amv lookup table
-        # just for standardization, we set theta as our sweeping angle and hold phi constant
+        # just for convention, we set theta as our sweeping angle and hold phi constant
         for i in range(self.resolution):
             phi = float(i) / resolution * (phi_max - phi_min) + phi_min
             wave_vector = np.array([np.sin(self.theta)*np.cos(phi), np.sin(self.theta)*np.sin(phi), np.cos(self.theta)])

@@ -220,30 +220,6 @@ def music_2d_testbench(antennas, num_samples: int, resolution: int, angles, snr)
     powers = (powers - powers_min)/(np.max(powers) - powers_min)*255
     return [powers, Rxx]
 
-def music_input_gen(len_ss: int, overlap_size: int, num_ss: int, num_antennas: int, FB: bool, arr_type: str, norm_spacing: float, PERTURB: bool, expected_aoa: float):
-    nonoverlap_size = len_ss - overlap_size
-    len_input = nonoverlap_size*num_ss + overlap_size
 
-    if PERTURB:
-        pass
-    # generate signal and multiply by amv
-    # assuming we're looking at a 5kHz signal at 2Msmps
-    freq = 5e3
-    samp_rate = 2e6
-    samples_per_period = samp_rate/freq # should be 400
-
-    config_file = ''
-
-    array_manifold = amv(num_antennas, norm_spacing, arr_type, expected_aoa, config_file)
-    signal = np.exp(-2j*math.pi/samples_per_period*np.array(range(len_input)))
-
-    signal_matrix = np.dot(amv, signal)
-
-
-
-    
-
-    
-
+def array_gain_estimation_testbench(antennas, num_samples, pilot_theta, pilot_phi):
     pass
-
