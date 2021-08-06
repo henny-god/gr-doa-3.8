@@ -42,7 +42,8 @@ GR_PYTHON_INSTALL(
     beamform_2d.py
     music_1d.py
     music_2d.py
-    peak_search_1d.py DESTINATION ${GR_PYTHON_DIR}/doa
+    peak_search_1d.py
+    array_gain_estimation.py DESTINATION ${GR_PYTHON_DIR}/doa
 )
 
 ########################################################################
@@ -54,7 +55,6 @@ set(GR_TEST_TARGET_DEPS gnuradio-doa)
 set(GR_TEST_PYTHON_DIRS ${CMAKE_BINARY_DIR}/swig)
 GR_ADD_TEST(qa_antenna_correction ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_antenna_correction.py)
 GR_ADD_TEST(qa_autocorrelate ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_autocorrelate.py)
-GR_ADD_TEST(qa_calibrate_lin_array ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_calibrate_lin_array.py)
 GR_ADD_TEST(qa_find_local_max ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_find_local_max.py)
 GR_ADD_TEST(qa_MUSIC_arb_array ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_MUSIC_arb_array.py)
 GR_ADD_TEST(qa_beamform ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_beamform.py)
@@ -63,3 +63,4 @@ GR_ADD_TEST(qa_beamform_2d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_b
 GR_ADD_TEST(qa_music_1d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_music_1d.py)
 GR_ADD_TEST(qa_music_2d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_music_2d.py)
 GR_ADD_TEST(qa_peak_search_1d ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_peak_search_1d.py)
+GR_ADD_TEST(qa_array_gain_estimation ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_array_gain_estimation.py)

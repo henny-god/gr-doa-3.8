@@ -20,7 +20,6 @@
 install(FILES
     doa_antenna_correction.block.yml
     doa_autocorrelate.block.yml
-    doa_calibrate_lin_array.block.yml
     doa_find_local_max.block.yml
     doa_average_and_save.block.yml
     doa_compass.block.yml
@@ -33,5 +32,6 @@ install(FILES
     doa_beamform_2d.block.yml
     doa_music_1d.block.yml
     doa_music_2d.block.yml
-    doa_peak_search_1d.block.yml DESTINATION share/gnuradio/grc/blocks
+    doa_peak_search_1d.block.yml
+    doa_array_gain_estimation.block.yml DESTINATION share/gnuradio/grc/blocks
 )

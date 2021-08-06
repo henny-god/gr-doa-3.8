@@ -44,3 +44,4 @@ from .beamform_2d import beamform_2d
 from .music_1d import music_1d
 from .music_2d import music_2d
 from .peak_search_1d import peak_search_1d
+from .array_gain_estimation import array_gain_estimation

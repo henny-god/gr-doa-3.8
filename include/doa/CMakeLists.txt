@@ -25,7 +25,6 @@ install(FILES
     api.h
     antenna_correction.h
     autocorrelate.h
-    calibrate_lin_array.h
     find_local_max.h
     MUSIC_arb_array.h
     DESTINATION include/doa
