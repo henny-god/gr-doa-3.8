@@ -24,7 +24,6 @@
 install(FILES
     api.h
     antenna_correction.h
-    MUSIC_lin_array.h
     autocorrelate.h
     calibrate_lin_array.h
     find_local_max.h

@@ -19,7 +19,6 @@
 # Boston, MA 02110-1301, USA.
 install(FILES
     doa_antenna_correction.block.yml
-    doa_MUSIC_lin_array.block.yml
     doa_autocorrelate.block.yml
     doa_calibrate_lin_array.block.yml
     doa_find_local_max.block.yml
