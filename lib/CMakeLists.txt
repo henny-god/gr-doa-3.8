@@ -26,7 +26,6 @@ list(APPEND doa_sources
     antenna_correction_impl.cc
     autocorrelate_impl.cc
     find_local_max_impl.cc
-    MUSIC_arb_array_impl.cc
     linalg_utils.c
     )
 

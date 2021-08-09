@@ -26,6 +26,5 @@ install(FILES
     antenna_correction.h
     autocorrelate.h
     find_local_max.h
-    MUSIC_arb_array.h
     DESTINATION include/doa
 )
