@@ -67,7 +67,7 @@ class array_gain_estimation(gr.sync_block):
         out = output_items[0]
 
         for item in range(len(in0)):
-            Rxx = np.ndarray(in0[item], (self.num_antennas, self.num_antennas))
+            Rxx = np.array(in0[item]).reshape(self.num_antennas, self.num_antennas)
 
             [evals_Rxx, evecs_Rxx] = np.linalg.eigh(Rxx)
             evecs_Rxx = evecs_Rxx[:,np.argsort(evals_Rxx)]

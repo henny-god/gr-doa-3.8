@@ -66,7 +66,7 @@ namespace gr {
         {
             if (i>=d_num_ant_ele)
                 throw std::invalid_argument("Configuration file has too many inputs.");
-            d_ComplexGain(i) = gr_complex(1.0/GainEst, 0)*exp(gr_complex(0,-PhaseEst));
+            d_ComplexGain(i) = gr_complex(1.0/GainEst, 0)*exp(gr_complex(0, PhaseEst));
             i++;
         }
         if (i!=d_num_ant_ele)
