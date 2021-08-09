@@ -1,45 +1,47 @@
 id: doa_array_gain_estimation
 label: array_gain_estimation
-category: '[doa]'
+category: 'DoA'
 
 templates:
   imports: import doa
   make: doa.array_gain_estimation(${num_antennas}, ${config_file}, ${pilot_theta}, ${pilot_phi})
 
-#  Make one 'parameters' list entry for every parameter you want settable from the GUI.
-#     Keys include:
-#     * id (makes the value accessible as \$keyname, e.g. in the make entry)
-#     * label (label shown in the GUI)
-#     * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
 parameters:
-- id: ...
-  label: ...
-  dtype: ...
-- id: ...
-  label: ...
-  dtype: ...
+- id: num_antennas
+  label: Number of Antennas
+  dtype: int
+  default: '4'
+- id: config_file
+  label: Config File
+  dtype: file_open
+  default: '~/array.cfg'
+- id: pilot_theta
+  label: Pilot Theta
+  dtype: float
+  default: '1.5708'
+- id: pilot_phi
+  label: Pilot Phi
+  dtype: float
+  default: '1.5708'
 
-#  Make one 'inputs' list entry per input and one 'outputs' list entry per output.
-#  Keys include:
-#      * label (an identifier for the GUI)
-#      * domain (optional - stream or message. Default is stream)
-#      * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
-#      * vlen (optional - data stream vector length. Default is 1)
-#      * optional (optional - set to 1 for optional inputs. Default is 0)
 inputs:
-- label: ...
-  domain: ...
-  dtype: ...
-  vlen: ...
-  optional: ...
+- label: in
+  domain: stream
+  dtype: complex
+  vlen: ${ num_antennas * num_antennas }
 
 outputs:
-- label: ...
-  domain: ...
-  dtype: ...
-  vlen: ...
-  optional: ...
+- label: out
+  domain: stream
+  dtype: complex
+  vlen: ${ num_antennas }
 
-#  'file_format' specifies the version of the GRC yml format used in the file
-#  and should usually not be changed.
+documentation: |-
+  "Uses a subspace technique to estimate the complex gain offsets in an array given an input autocorrelation matrix. Returns a vector of complex gain offsets that should be written to a file and then used to calibrate samples in subsequent uses of the same array and SDR.
+  Args:
+    num_antennas: number of antennas in array
+    config_file: path to the array configuration file. See README in docs for how to make these.
+    pilot_theta: known theta angle of incoming wavefront
+    pilot_phi: known phi angle of incoming wavefront"
+
 file_format: 1
