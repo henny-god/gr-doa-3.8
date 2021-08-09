@@ -125,7 +125,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [216, 344.0]
+    coordinate: [144, 264.0]
     rotation: 0
     state: true
 - name: phi_deg
@@ -146,7 +146,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [176, 188.0]
+    coordinate: [136, 148.0]
     rotation: 0
     state: true
 - name: samp_rate
@@ -170,7 +170,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [864, 232.0]
+    coordinate: [528, 88.0]
     rotation: 0
     state: true
 - name: theta
@@ -182,7 +182,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [104, 344.0]
+    coordinate: [32, 264.0]
     rotation: 0
     state: true
 - name: theta_deg
@@ -203,7 +203,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [32, 204.0]
+    coordinate: [32, 148.0]
     rotation: 0
     state: true
 - name: analog_noise_source_x_0
