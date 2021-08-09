@@ -59,6 +59,17 @@ Autocorrelation: this step is the same for all doa techniques because it is sort
 
 From here on out, the steps are determined by which DoA estimation technique you are performing.
 
+## Array Calibration
+In most cases, your receiving channels will not be perfectly phase-synced or gain-matched, even when they are sample-synced, which renders your SDR useless for all DoA algorithms. This might have to do with your SDR, the feed lines, or the antennas. In either case, hardware calibration can only take you so far and more often than not there is some persisting phase offset that cannot be corrected. To overcome this, you must calibrate the channels in the computational stage of the DoA estimation. This is performed by knowing the actual angle of arrival of an incoming signal and then solving for the unknown complex gains on each antenna.
+
+The Array Gain Estimation Block does this using a subspace-based method outlined in [this paper](https://ieeexplore.ieee.org/document/285666) and uses the Average and Save block to write the outputs to a configuration file that you can store between uses. A demonstration of this is given in the calibrate\_linear\_array demo. In this, you see that we generate a signal with theta and phi of arrival at 90 degrees and 90 degrees. The autocorrelation of these sources is then fed to the offset estimation array which is then split into gain and phase vectors. The averaging and saving is done by the final block.
+
+Once you have estimated the complex gains of the antennas in an array, you can account for them by using the Antenna Correction block, setting its file to the file output of the previous demo. This is demonstrated in the correct_gain demo flowgraph.
+
+It is recommended that you perform these calibration steps on any antenna array and SDR you are using, even if it appears that the phase offsets between channels are zero. In many cases, there is 
+
+
+
 ## Beamforming
 Beamforming is essentially measuring the signal power in a given direction
 
